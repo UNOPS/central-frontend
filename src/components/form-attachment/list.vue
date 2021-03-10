@@ -240,6 +240,9 @@ export default {
       // than its MIME type. I think the MIME type for a CSV file should be
       // text/csv, but apparently some clients use application/vnd.ms-excel
       // instead.
+      // disable gzipped requests
+      return Promise.resolve({ data: file, encoding: 'identity' });
+      /*
       const fileIsCsv = file.name.length >= 4 &&
         file.name.slice(-4).toLowerCase() === '.csv';
       if (!fileIsCsv || file.size < 16000)
@@ -260,6 +263,7 @@ export default {
         };
         reader.readAsText(file);
       });
+      */
     },
     // uploadFile() may mutate `updatedAttachments`.
     uploadFile({ attachment, file }, updatedAttachments) {
