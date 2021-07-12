@@ -81,6 +81,9 @@ export default {
   },
   "id": {
     "text": "{dateTime} oleh {displayName}"
+  },
+  "ja": {
+    "text": "{displayName}が{dateTime}の時点で実施"
   }
 }
 </i18n>

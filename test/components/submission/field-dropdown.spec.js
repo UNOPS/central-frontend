@@ -1,15 +1,14 @@
 import sinon from 'sinon';
 
+import SubmissionDataRow from '../../../src/components/submission/data-row.vue';
 import SubmissionFieldDropdown from '../../../src/components/submission/field-dropdown.vue';
-import SubmissionList from '../../../src/components/submission/list.vue';
 import SubmissionTable from '../../../src/components/submission/table.vue';
 
 import Field from '../../../src/presenters/field';
-import Form from '../../../src/presenters/form';
 import store from '../../../src/store';
 
 import testData from '../../data';
-import { mockHttp } from '../../util/http';
+import { loadSubmissionList } from '../../util/submission';
 import { mount } from '../../util/lifecycle';
 import { trigger } from '../../util/event';
 
@@ -28,21 +27,6 @@ const commitFields = (fields) => {
     key: 'fields',
     value: fields[0] instanceof Field ? fields : fields.map(present)
   });
-};
-
-const loadSubmissionList = (attachToDocument = false) => {
-  const form = testData.extendedForms.last();
-  return mockHttp()
-    .mount(SubmissionList, {
-      propsData: {
-        baseUrl: '/v1/projects/1/forms/f',
-        formVersion: new Form(form)
-      },
-      requestData: { keys: [] },
-      attachToDocument
-    })
-    .respondWithData(() => form._fields)
-    .respondWithData(testData.submissionOData);
 };
 
 describe('SubmissionFieldDropdown', () => {
@@ -423,7 +407,7 @@ describe('SubmissionFieldDropdown', () => {
     };
 
     it('sends a request for submissions', () =>
-      loadSubmissionList(true)
+      loadSubmissionList({ attachToDocument: true })
         .complete()
         .request(uncheckFirst)
         .beforeEachResponse((_, { url }) => {
@@ -432,15 +416,16 @@ describe('SubmissionFieldDropdown', () => {
         .respondWithData(testData.submissionOData));
 
     it('re-renders the table with the selected fields', () =>
-      loadSubmissionList(true)
+      loadSubmissionList({ attachToDocument: true })
         .complete()
         .request(uncheckFirst)
         .beforeEachResponse(component => {
-          component.find(SubmissionTable).length.should.equal(0);
+          component.find(SubmissionDataRow).length.should.equal(0);
         })
         .respondWithData(testData.submissionOData)
         .afterResponse(component => {
           const table = component.first(SubmissionTable);
+          table.find(SubmissionDataRow).length.should.equal(1);
           table.getProp('fields').length.should.equal(9);
         }));
   });

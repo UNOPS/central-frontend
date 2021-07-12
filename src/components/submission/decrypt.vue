@@ -251,6 +251,16 @@ export default {
     "alert": {
       "submit": "Unduhan Anda akan segera dimulai. Setelah unduhan dimulai, Anda dapat menutup kotak ini. Apabila Anda sudah menunggu dan unduhan belum dimulai, silakan coba lagi."
     }
+  },
+  "ja": {
+    "title": "復号してダウンロード",
+    "introduction": [
+      "このデータをダウンロードするためには、パスフレーズを入力する必要があります。パスフレーズは、データをダウンロードする際の復号時にのみ使用され、その後、サーバーはパスフレーズを保持しません。"
+    ],
+    "hint": "ヒント：{hint}",
+    "alert": {
+      "submit": "データダウンロードはすぐに始まります。始まり次第、このボックスを閉じて構いません。開始されない場合は、もう一度試して下さい。"
+    }
   }
 }
 </i18n>

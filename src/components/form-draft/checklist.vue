@@ -15,7 +15,8 @@ except according to the terms contained in the LICENSE file.
       <template #title>{{ $t('steps[0].title') }}</template>
       <p>
         <strong>{{ $t('steps[0].body[0]') }}</strong>
-        {{ $t('steps[0].body[1]') }}
+        <sentence-separator/>
+        <span>{{ $t('steps[0].body[1]') }}</span>
       </p>
     </checklist-step>
     <checklist-step stage="current">
@@ -38,7 +39,7 @@ except according to the terms contained in the LICENSE file.
             <router-link :to="formPath('draft/attachments')">{{ $t('steps[2].body[0].mediaFiles') }}</router-link>
           </template>
         </i18n>
-        &nbsp;
+        <sentence-separator/>
         <doc-link to="central-forms/#forms-with-attachments">{{ $t('clickForInfo') }}</doc-link>
       </p>
     </checklist-step>
@@ -51,22 +52,20 @@ except according to the terms contained in the LICENSE file.
             <router-link :to="formPath('draft/testing')">{{ $t('steps[3].body[0].test') }}</router-link>
           </template>
         </i18n>
-        &nbsp;
+        <sentence-separator/>
         <doc-link to="central-forms/#working-with-form-drafts">{{ $t('clickForInfo') }}</doc-link>
       </p>
     </checklist-step>
     <checklist-step stage="current">
       <template #title>{{ $t('steps[4].title') }}</template>
       <p>
-        <template v-if="status">
-          {{ $t('steps[4].body[0].status') }}
-        </template>
+        <template v-if="status">{{ $t('steps[4].body[0].status') }}</template>
         <i18n v-else :tag="false" path="steps[4].body[0].link.full">
           <template #publish>
             <router-link :to="formPath('draft')">{{ $t('steps[4].body[0].link.publish') }}</router-link>
           </template>
         </i18n>
-        &nbsp;
+        <sentence-separator/>
         <doc-link to="central-forms/#working-with-form-drafts">{{ $t('clickForInfo') }}</doc-link>
       </p>
     </checklist-step>
@@ -78,12 +77,14 @@ import { mapGetters } from 'vuex';
 
 import ChecklistStep from '../checklist-step.vue';
 import DocLink from '../doc-link.vue';
+import SentenceSeparator from '../sentence-separator.vue';
+
 import routes from '../../mixins/routes';
 import { requestData } from '../../store/modules/request';
 
 export default {
   name: 'FormDraftChecklist',
-  components: { ChecklistStep, DocLink },
+  components: { ChecklistStep, DocLink, SentenceSeparator },
   mixins: [routes()],
   props: {
     // Indicates whether the current route path is .../draft.
@@ -449,6 +450,60 @@ export default {
             "link": {
               "full": "Ketika Anda yakin Draf sudah siap, Anda bisa {publish} menggunakan tombol yang ada di sebelah kanan.",
               "publish": "menerbitkannya"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ja": {
+    "clickForInfo": "さらに詳細を知るには、こちらをクリックして下さい。",
+    "steps": [
+      {
+        "title": "初期バージョンの定義フォームのアップロード",
+        "body": [
+          "お疲れ様でした！",
+          "フォームが正常に読み込まれました。"
+        ]
+      },
+      {
+        "title": "修正した定義フォームをアップロード（任意）",
+        "body": [
+          {
+            "status": "フォームに質問文や理論式などの変更を加えた場合、右のボタンを使って更新したXMLまたはXLSFormをアップロードして下さい。",
+            "link": {
+              "full": "フォームに質問文や理論式などの変更を加えた場合、更新したXMLまたはXLSFormを{upload}するには、今がチャンスです。",
+              "upload": "アップロード"
+            }
+          }
+        ]
+      },
+      {
+        "title": "フォームのメディアファイルのアップロード",
+        "body": [
+          {
+            "full": "あなたのフォームには、メディアファイルが必要です。これらのファイルの新規または更新されたコピーのアップロードは、{mediaFiles}タブで設定できます。",
+            "mediaFiles": "メディアファイル"
+          }
+        ]
+      },
+      {
+        "title": "フォームをモバイル端末でテスト",
+        "body": [
+          {
+            "full": "フォームが期待通りに動作するかを{test}できます。テストの目的で提出されたフォームは、最終的なデータには含まれません。",
+            "test": "テスト"
+          }
+        ]
+      },
+      {
+        "title": "下書きの公開",
+        "body": [
+          {
+            "status": "下書きの準備が整い、フィールドで用いる端末で運用開始したい場合、右のボタンを使って下書きを公開できます。",
+            "link": {
+              "full": "下書きの準備が整い、フィールドで用いる端末で運用開始したい場合、下書きを{publish}できます。",
+              "publish": "公開"
             }
           }
         ]

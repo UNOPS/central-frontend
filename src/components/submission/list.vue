@@ -13,29 +13,31 @@ except according to the terms contained in the LICENSE file.
   <div id="submission-list">
     <loading :state="$store.getters.initiallyLoading(['fields'])"/>
     <div v-show="fields != null">
-      <form class="form-inline" @submit.prevent>
-        <submission-filters v-if="filterable" v-bind.sync="filters"/>
-        <submission-field-dropdown
-          v-if="fields != null && selectableFields.length > 11"
-          v-model="selectedFields"/>
-        <button id="submission-list-refresh-button" type="button"
-          class="btn btn-primary" :disabled="refreshing"
-          @click="fetchChunk(0, false)">
-          <span class="icon-refresh"></span>{{ $t('action.refresh') }}
-          <spinner :state="refreshing"/>
-        </button>
+      <div id="submission-list-actions">
+        <form class="form-inline" @submit.prevent>
+          <submission-filters v-if="!draft" v-bind.sync="filters"/>
+          <submission-field-dropdown
+            v-if="fields != null && selectableFields.length > 11"
+            v-model="selectedFields"/>
+          <button id="submission-list-refresh-button" type="button"
+            class="btn btn-default" :disabled="refreshing"
+            @click="fetchChunk(0, false)">
+            <span class="icon-refresh"></span>{{ $t('action.refresh') }}
+            <spinner :state="refreshing"/>
+          </button>
+        </form>
         <submission-download-dropdown v-if="formVersion != null"
-          :base-url="baseUrl" :form-version="formVersion"
-          :odata-filter="odataFilter" @decrypt="showDecrypt"/>
-      </form>
-      <template v-if="submissions != null">
-        <p v-if="submissions.length === 0" class="empty-table-message">
-          {{ odataFilter == null ? $t('emptyTable') : $t('noMatching') }}
-        </p>
-        <submission-table v-else-if="fields != null" :base-url="baseUrl"
-          :submissions="submissions" :fields="selectedFields"
-          :original-count="originalCount" :shows-submitter="showsSubmitter"/>
-      </template>
+          :form-version="formVersion" :odata-filter="odataFilter"
+          @decrypt="showDecrypt"/>
+      </div>
+      <submission-table v-show="submissions != null && submissions.length !== 0"
+        ref="table" :project-id="projectId" :xml-form-id="xmlFormId"
+        :draft="draft" :submissions="submissions" :fields="selectedFields"
+        :original-count="originalCount" @review="showReview"/>
+      <p v-show="submissions != null && submissions.length === 0"
+        class="empty-table-message">
+        {{ odataFilter == null ? $t('emptyTable') : $t('noMatching') }}
+      </p>
       <div v-show="odataLoadingMessage != null" id="submission-list-message">
         <div id="submission-list-spinner-container">
           <spinner :state="odataLoadingMessage != null"/>
@@ -43,7 +45,12 @@ except according to the terms contained in the LICENSE file.
         <div id="submission-list-message-text">{{ odataLoadingMessage }}</div>
       </div>
     </div>
+
     <submission-decrypt v-bind="decrypt" @hide="hideModal('decrypt')"/>
+    <submission-update-review-state :state="review.state"
+      :project-id="projectId" :xml-form-id="xmlFormId"
+      :submission="review.submission" @hide="hideReview"
+      @success="afterReview"/>
   </div>
 </template>
 
@@ -58,11 +65,11 @@ import SubmissionDownloadDropdown from './download-dropdown.vue';
 import SubmissionFieldDropdown from './field-dropdown.vue';
 import SubmissionFilters from './filters.vue';
 import SubmissionTable from './table.vue';
+import SubmissionUpdateReviewState from './update-review-state.vue';
 
-import Form from '../../presenters/form';
 import modal from '../../mixins/modal';
+import { apiPaths } from '../../util/request';
 import { noop } from '../../util/util';
-import { queryString } from '../../util/request';
 import { requestData } from '../../store/modules/request';
 
 export default {
@@ -74,43 +81,32 @@ export default {
     SubmissionDownloadDropdown,
     SubmissionFieldDropdown,
     SubmissionFilters,
-    SubmissionTable
+    SubmissionTable,
+    SubmissionUpdateReviewState
   },
   mixins: [modal()],
   props: {
-    baseUrl: {
+    projectId: {
       type: String,
       required: true
     },
-    formVersion: Form, // eslint-disable-line vue/require-default-prop
-    filterable: {
-      type: Boolean,
-      default: false
+    xmlFormId: {
+      type: String,
+      required: true
     },
-    showsSubmitter: {
-      type: Boolean,
-      default: false
-    },
+    draft: Boolean,
     // Returns the value of the $top query parameter.
     top: {
       type: Function,
       default: (skip) => (skip < 1000 ? 250 : 1000)
-    },
-    // Function that returns true if the user has scrolled to the bottom of the
-    // page (or close to it) and false if not. Implementing this as a prop in
-    // order to facilitate testing.
-    scrolledToBottom: {
-      type: Function,
-      default: () =>
-        // Using pageYOffset rather than scrollY in order to support IE.
-        window.pageYOffset + window.innerHeight >= document.body.offsetHeight - 5
     }
   },
   data() {
     return {
       filters: {
         submitterId: '',
-        submissionDate: []
+        submissionDate: [],
+        reviewState: ''
       },
       selectedFields: null,
       refreshing: false,
@@ -126,11 +122,22 @@ export default {
       decrypt: {
         state: false,
         formAction: null
+      },
+      review: {
+        state: false,
+        submission: null
       }
     };
   },
   computed: {
-    ...requestData(['keys', 'fields', 'odataChunk', 'submitters']),
+    ...requestData([
+      'form',
+      { key: 'formDraft', getOption: true },
+      'keys',
+      'fields',
+      'odataChunk',
+      'submitters'
+    ]),
     ...mapGetters(['selectableFields']),
     odataFilter() {
       const conditions = [];
@@ -142,10 +149,15 @@ export default {
         conditions.push(`__system/submissionDate ge ${start}`);
         conditions.push(`__system/submissionDate le ${end}`);
       }
+      if (this.filters.reviewState !== '')
+        conditions.push(`__system/reviewState eq ${this.filters.reviewState}`);
       return conditions.length !== 0 ? conditions.join(' and ') : null;
     },
     loadingOData() {
       return this.$store.getters.loading('odataChunk');
+    },
+    formVersion() {
+      return this.draft ? this.formDraft : this.form;
     },
     odataLoadingMessage() {
       if (!this.loadingOData || this.refreshing) return null;
@@ -180,6 +192,7 @@ export default {
   watch: {
     'filters.submitterId': 'filter',
     'filters.submissionDate': 'filter',
+    'filters.reviewState': 'filter',
     selectedFields(_, oldFields) {
       if (oldFields != null) this.fetchChunk(0, true);
     },
@@ -191,10 +204,10 @@ export default {
     this.fetchData();
   },
   mounted() {
-    document.addEventListener('scroll', this.onScroll);
+    document.addEventListener('scroll', this.afterScroll);
   },
   beforeDestroy() {
-    document.removeEventListener('scroll', this.onScroll);
+    document.removeEventListener('scroll', this.afterScroll);
   },
   methods: {
     clearSubmissions() {
@@ -230,11 +243,16 @@ export default {
       if (clear) this.clearSubmissions();
       this.refreshing = !clear && skip === 0;
       const top = this.top(skip);
-      const query = { $top: top, $skip: skip, $count: true };
+      const query = { $top: top, $skip: skip, $count: true, $wkt: true };
       if (this.odataFilter != null) query.$filter = this.odataFilter;
       return this.$store.dispatch('get', [{
         key: 'odataChunk',
-        url: `${this.baseUrl}.svc/Submissions${queryString(query)}`,
+        url: apiPaths.odataSubmissions(
+          this.projectId,
+          this.xmlFormId,
+          this.draft,
+          query
+        ),
         // We use this.odataChunk['@odata.count'] to access the filtered count,
         // so we don't clear this.odataChunk here. this.clearSubmissions() will
         // clear this.odataChunk.
@@ -251,7 +269,9 @@ export default {
     fetchData() {
       this.$store.dispatch('get', [{
         key: 'fields',
-        url: `${this.baseUrl}/fields?odata=true`,
+        url: apiPaths.fields(this.projectId, this.xmlFormId, this.draft, {
+          odata: true
+        }),
         success: () => {
           // We also use 11 in the SubmissionFieldDropdown v-if.
           this.selectedFields = this.selectableFields.length <= 11
@@ -260,15 +280,20 @@ export default {
         }
       }]).catch(noop);
       this.fetchChunk(0, true);
-      if (this.filterable) {
+      if (!this.draft) {
         this.$store.dispatch('get', [{
           key: 'submitters',
-          url: `${this.baseUrl}/submissions/submitters`
+          url: apiPaths.submitters(this.projectId, this.xmlFormId, this.draft)
         }]).catch(noop);
       }
     },
+    scrolledToBottom() {
+      // Using pageYOffset rather than scrollY in order to support IE.
+      return window.pageYOffset + window.innerHeight >=
+        document.body.offsetHeight - 5;
+    },
     // This method may need to change once we support submission deletion.
-    onScroll() {
+    afterScroll() {
       if (this.formVersion != null && this.keys != null &&
         this.fields != null && this.submissions != null &&
         this.submissions.length < this.originalCount && !this.loadingOData &&
@@ -282,6 +307,31 @@ export default {
     showDecrypt(formAction) {
       this.decrypt.formAction = formAction;
       this.showModal('decrypt');
+    },
+    showReview(submission) {
+      this.review.submission = submission;
+      this.showModal('review');
+    },
+    hideReview() {
+      this.hideModal('review');
+      this.review.submission = null;
+    },
+    // This method accounts for the unlikely case that the user clicked the
+    // refresh button before reviewing the submission. In that case, the
+    // submission may have been edited or may no longer be shown.
+    afterReview(originalSubmission, reviewState) {
+      this.hideReview();
+      this.$alert().success(this.$t('alert.updateReviewState'));
+      const index = this.submissions.findIndex(submission =>
+        submission.__id === originalSubmission.__id);
+      if (index !== -1) {
+        const submission = this.submissions[index];
+        this.$set(this.submissions, index, {
+          ...submission,
+          __system: { ...submission.__system, reviewState }
+        });
+        this.$refs.table.afterReview(index);
+      }
     }
   }
 };
@@ -296,14 +346,25 @@ export default {
   min-height: 375px;
 }
 
-#submission-filters + #submission-field-dropdown { margin-left: 15px }
-#submission-filters + #submission-list-refresh-button { margin-left: 10px; }
-#submission-field-dropdown + #submission-list-refresh-button {
+#submission-list-actions {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap-reverse;
+}
+#submission-field-dropdown {
   margin-left: 15px;
+  margin-right: 5px;
+}
+#submission-list-refresh-button {
+  margin-left: 10px;
+  margin-right: 5px;
 }
 #submission-download-dropdown {
-  float: right;
-  top: 3px;
+  margin-bottom: 10px;
+  margin-left: auto;
+
+  // Needed to work with align-items above.
+  .btn { float: none; }
 }
 
 #submission-list-message {
@@ -369,56 +430,133 @@ export default {
     "loading": {
       "withoutCount": "Načítání příspěvků…",
       "all": "Načítání {count} příspěvku ... | Načítání {count} příspěvků ... | Načítání {count} příspěvků ... | Načítání {count} příspěvků ...",
+      "first": "Načítání prvního {top} z {count} příspěvku… | Načítání prvního {top} ze {count} příspěvků… | Načítání prvního {top} z {count} příspěvků… | Načítání prvního {top} z {count} příspěvků…",
+      "middle": "Načítání {top} z dalšího {count} zbývajícího příspěvku… | Načítání {top} z dalších {count} zbývajících příspěvků… | Načítání {top} z dalších {count} zbývajících příspěvků… | Načítání {top} z dalších {count} zbývajících příspěvků…",
       "last": {
         "multiple": "Načítání posledního {count} příspěvku… | Načítání posledních {count} příspěvků… | Načítání posledních {count} příspěvků… | Načítání posledních {count} příspěvků…",
         "one": "Načítání posledního příspěvku…"
+      },
+      "filtered": {
+        "withoutCount": "Načítání odpovídajících příspěvků…",
+        "middle": "Načítání {top} z dalších {count} zbývajících odpovídajících příspěvků… | Načítání {top} z dalších {count} zbývajících odpovídajících příspěvků… | Načítání {top} z dalších {count} zbývajících odpovídajících příspěvků… | Načítání {top} z dalších {count} zbývajících odpovídajících příspěvků…",
+        "last": {
+          "multiple": "Načítání posledního {count} odpovídajícího příspěvku… | Načítání posledních {count} odpovídajících příspěvků… | Načítání posledních {count} odpovídajících příspěvků… | Načítání posledních {count} odpovídajících příspěvků…",
+          "one": "Načítání posledního odpovídajícího příspěvku…"
+        }
       }
     },
-    "emptyTable": "Zatím neexistují žádné příspěvky."
+    "emptyTable": "Zatím neexistují žádné příspěvky.",
+    "noMatching": "Neexistují žádné odpovídající příspěvky."
   },
   "de": {
     "loading": {
       "withoutCount": "Übermittlungen laden...",
       "all": "{count} Übermittlung laden... | {count} Übermittlungen laden...",
+      "first": "Lade die ersten {top} von {count} Übermittlung... | Lade die ersten {top} von {count} Übermittlungen...",
+      "middle": "Lade weitere {top} von {count} übrigen Übermittlung... | Lade weitere {top} von {count} übrigen Übermittlungen...",
       "last": {
         "multiple": "Die letzte {count} Übermittlung laden... | Die letzten {count} Übermittlungen laden...",
         "one": "Letzte Übermittlung laden..."
+      },
+      "filtered": {
+        "withoutCount": "Lade passende Übermittlungen...",
+        "middle": "Lade weitere {top} von {count} übrigen passenden Übermittlung... | Lade weitere {top} von {count} übrigen passenden Übermittlungen...",
+        "last": {
+          "multiple": "Lade die letzte {count} passenden Übermittlung... | Lade die letzten {count} passenden Übermittlungen...",
+          "one": "Lade die letzten passenden Übermittlungen..."
+        }
       }
     },
-    "emptyTable": "Es gibt noch keine Übermittlungen."
+    "emptyTable": "Es gibt noch keine Übermittlungen.",
+    "noMatching": "Es gibt keine passenden Übermittlungen."
   },
   "es": {
     "loading": {
       "withoutCount": "Cargando los envíos...",
       "all": "Cargando {count} envío... | Cargando {count} envíos...",
+      "first": "Cargando la primera {top} de {count} envios... | Cargando la primera {top} de {count} envios...",
+      "middle": "Cargando {top} más de {count} envíos restantes... | Cargando {top} más de {count} envíos restantes...",
       "last": {
         "multiple": "Cargando el último {count} envío... | Cargando los últimos {count} envíos...",
         "one": "Cargando el último envío..."
+      },
+      "filtered": {
+        "withoutCount": "Cargando envíos coincidentes…",
+        "middle": "Cargando {top} más de {count} envíos restantes coincidentes... | Cargando {top} más de {count} envíos restantes coincidentes...",
+        "last": {
+          "multiple": "Cargando los últimos {count} envíos coincidentes… | Cargando los últimos {count} envíos coincidentes…",
+          "one": "Cargando el último envío coincidente…"
+        }
       }
     },
-    "emptyTable": "No hay envíos todavía."
+    "emptyTable": "No hay envíos todavía.",
+    "noMatching": "No hay envíos coincidentes."
   },
   "fr": {
     "loading": {
       "withoutCount": "Chargement des soumissions...",
       "all": "Chargement de {count} soumission... | Chargement de {count} soumissions...",
+      "first": "Chargement des premières {top} sur {count} soumissions... | Chargement des premières {top} sur {count} soumissions...",
+      "middle": "Chargement de {top} autres de {count} soumission restante... | Chargement de {top} autres des {count} soumissions restantes...",
       "last": {
         "multiple": "Chargement de la {count} dernière soumissions... | Chargement des {count} dernières soumissions...",
         "one": "Chargement la dernière soumission..."
+      },
+      "filtered": {
+        "withoutCount": "Chargement des soumissions correspondantes...",
+        "middle": "Chargement de {top} autres des {count} soumissions correspondantes restantes... | Chargement de {top} autres des {count} soumissions correspondantes restantes...",
+        "last": {
+          "multiple": "Chargement d'{count} dernière soumission correspondante... | Chargement des {count} dernières soumissions correspondantes...",
+          "one": "Chargement de la dernière soumission correspondante..."
+        }
       }
     },
-    "emptyTable": "Il n'y a pas encore de soumissions."
+    "emptyTable": "Il n'y a pas encore de soumissions.",
+    "noMatching": "Il n'y a pas de soumission correspondante."
   },
   "id": {
     "loading": {
       "withoutCount": "Memuat kiriman data...",
       "all": "Memuat {count} kiriman data...",
+      "first": "Memuat yang pertama {top} dari {count} Pengiriman…",
+      "middle": "Memuat {top} dari {count} sisa Pengiriman…",
       "last": {
         "multiple": "Memuat {count} kiriman data terakhir...",
         "one": "Memuat kiriman data terakhir..."
+      },
+      "filtered": {
+        "withoutCount": "Memuat Pengiriman yang cocok...",
+        "middle": "Memuat {top} dari {count} sisa Pengiriman yang cocok…",
+        "last": {
+          "multiple": "Memuat sisa {count} Pengiriman yang cocok…",
+          "one": "Memuat Pengiriman terakhir yang cocok"
+        }
       }
     },
-    "emptyTable": "Belum ada kiriman data."
+    "emptyTable": "Belum ada kiriman data.",
+    "noMatching": "Tidak ada Pengiriman yang cocok."
+  },
+  "ja": {
+    "loading": {
+      "withoutCount": "提出済フォームの読み込み中...",
+      "all": "{count}の提出済フォームを読み込み中...",
+      "first": "{count}件の提出済フォームの内、最初の{top}を読み込み中...",
+      "middle": "残り{count}件の提出済フォームの内、さらに{top}件を読み込み中...",
+      "last": {
+        "multiple": "最後の{count}件の提出済フォームを読み込み中...",
+        "one": "最後の提出済フォームを読み込み中..."
+      },
+      "filtered": {
+        "withoutCount": "照合できる提出済フォームの読み込み中...",
+        "middle": "一致する残り{count}件の提出済フォームの内、さらに{top}件を読み込み中...",
+        "last": {
+          "multiple": "一致する最後の{count}件の提出済フォームを読み込み中...",
+          "one": "最後の照合できる提出済フォームを読み込み中..."
+        }
+      }
+    },
+    "emptyTable": "表示できる提出済フォームはありません。",
+    "noMatching": "照合できる提出済フォームはありません。"
   }
 }
 </i18n>

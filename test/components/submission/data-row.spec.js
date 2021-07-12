@@ -1,65 +1,25 @@
 import { Settings } from 'luxon';
 
-import DateTime from '../../../src/components/date-time.vue';
-import SubmissionRow from '../../../src/components/submission/row.vue';
+import SubmissionDataRow from '../../../src/components/submission/data-row.vue';
 
 import Field from '../../../src/presenters/field';
 
 import testData from '../../data';
-import { mockLogin } from '../../util/session';
 import { mount } from '../../util/lifecycle';
 import { setLuxon } from '../../util/date-time';
 
-const mountComponent = (propsData = {}) => mount(SubmissionRow, {
+const mountComponent = (propsData = undefined) => mount(SubmissionDataRow, {
   propsData: {
-    baseUrl: propsData.rowNumber == null ? '/base' : '',
+    projectId: '1',
+    xmlFormId: 'f',
+    draft: false,
     submission: testData.submissionOData().value[0],
-    fields: propsData.rowNumber == null
-      ? testData.extendedForms.last()._fields.map(field => new Field(field))
-      : null,
+    fields: testData.extendedForms.last()._fields.map(field => new Field(field)),
     ...propsData
   }
 });
 
-describe('SubmissionRow', () => {
-  beforeEach(() => {
-    mockLogin({ displayName: 'Alice' });
-  });
-
-  it('shows the row number', () => {
-    testData.extendedForms.createPast(1, { submissions: 1000 });
-    testData.extendedSubmissions.createPast(1);
-    const td = mountComponent({ rowNumber: 1000 }).first('td');
-    td.hasClass('row-number').should.be.true();
-    td.text().trim().should.equal('1000');
-  });
-
-  describe('submitter name', () => {
-    it('shows the submitter name if showsSubmitter is true', () => {
-      testData.extendedForms.createPast(1, { submissions: 1 });
-      testData.extendedSubmissions.createPast(1);
-      const row = mountComponent({ rowNumber: 1, showsSubmitter: true });
-      const td = row.find('td')[1];
-      td.hasClass('submitter-name').should.be.true();
-      td.text().trim().should.equal('Alice');
-      td.getAttribute('title').should.equal('Alice');
-    });
-
-    it('does not show the submitter name if showsSubmitter is false', () => {
-      testData.extendedForms.createPast(1, { submissions: 1 });
-      testData.extendedSubmissions.createPast(1);
-      const row = mountComponent({ rowNumber: 1, showsSubmitter: false });
-      row.find('.submitter-name').length.should.equal(0);
-    });
-  });
-
-  it('shows the submission date', () => {
-    testData.extendedForms.createPast(1, { submissions: 1 });
-    const { createdAt } = testData.extendedSubmissions.createPast(1).last();
-    const row = mountComponent({ rowNumber: 1 });
-    row.first(DateTime).getProp('iso').should.equal(createdAt);
-  });
-
+describe('SubmissionDataRow', () => {
   it('shows an empty string if the value of a field does not exist', () => {
     testData.extendedForms.createPast(1, {
       fields: [testData.fields.string('/s')],
@@ -281,31 +241,13 @@ describe('SubmissionRow', () => {
     }
   });
 
-  describe('geopoint values', () => {
-    const geopoint = (...coordinates) => ({ type: 'Point', coordinates });
-    // Each test case is an array with the following structure:
-    // [raw value, expected formatted value]
-    const cases = [
-      [geopoint(0.1234567, 0.1234567), '0.1234567 0.1234567'],
-      [geopoint(0.123456, 0.123456), '0.1234560 0.1234560'],
-      [geopoint(0.12345678, 0.12345678), '0.1234568 0.1234568'],
-      [geopoint(0.1234567, 0.1234567, 0.1), '0.1234567 0.1234567 0.1'],
-      [geopoint(0.1234567, 0.1234567, 0), '0.1234567 0.1234567 0.0'],
-      [geopoint(0.1234567, 0.1234567, 0.15), '0.1234567 0.1234567 0.2']
-    ];
-
-    for (const [rawValue, formattedValue] of cases) {
-      it(`correctly formats ${rawValue.coordinates.join(' ')}`, () => {
-        testData.extendedForms.createPast(1, {
-          fields: [testData.fields.geopoint('/g')],
-          submissions: 1
-        });
-        testData.extendedSubmissions.createPast(1, { g: rawValue });
-        const td = mountComponent().first('td');
-        td.text().should.equal(formattedValue);
-        td.getAttribute('title').should.equal(formattedValue);
-      });
-    }
+  it('adds the geopoint-field class for a geopoint value', () => {
+    testData.extendedForms.createPast(1, {
+      fields: [testData.fields.geopoint('/g')],
+      submissions: 1
+    });
+    testData.extendedSubmissions.createPast(1);
+    mountComponent().first('td').hasClass('geopoint-field').should.be.true();
   });
 
   describe('binary field', () => {
@@ -323,7 +265,7 @@ describe('SubmissionRow', () => {
       td.hasAttribute('title').should.be.false();
       const a = td.first('a');
       const href = a.getAttribute('href');
-      href.should.equal('/base/submissions/a%20b/attachments/c%20d.jpg');
+      href.should.equal('/v1/projects/1/forms/f/submissions/a%20b/attachments/c%20d.jpg');
       a.find('.icon-check').length.should.equal(1);
       a.find('.icon-download').length.should.equal(1);
     });
@@ -342,7 +284,7 @@ describe('SubmissionRow', () => {
       const td = mountComponent().first('td');
       td.hasClass('binary-field').should.be.true();
       const href = td.first('a').getAttribute('href');
-      href.should.equal('/base/submissions/foo/attachments/bar.jpg');
+      href.should.equal('/v1/projects/1/forms/f/submissions/foo/attachments/bar.jpg');
     });
 
     it('does not render a link if the value does not exist', () => {
@@ -382,5 +324,35 @@ describe('SubmissionRow', () => {
     const td = mountComponent().find('td');
     td.length.should.equal(3);
     td.map(wrapper => wrapper.text()).should.eql(['bar', 'baz', 'foo']);
+  });
+
+  describe('encrypted submission', () => {
+    it('renders correctly', () => {
+      testData.extendedProjects.createPast(1, {
+        key: testData.standardKeys.createPast(1).last(),
+        forms: 1
+      });
+      testData.extendedForms.createPast(1, {
+        fields: [testData.fields.string('/s1'), testData.fields.string('/s2')],
+        submissions: 1
+      });
+      testData.extendedSubmissions.createPast(1, { status: 'notDecrypted' });
+      const row = mountComponent();
+      row.hasClass('encrypted-submission').should.be.true();
+      row.find('td').length.should.equal(2);
+      row.first('td').getAttribute('colspan').should.equal('2');
+    });
+
+    it('does not show the encryption message if no fields are selected', () => {
+      testData.extendedProjects.createPast(1, {
+        key: testData.standardKeys.createPast(1).last(),
+        forms: 1
+      });
+      testData.extendedSubmissions.createPast(1, { status: 'notDecrypted' });
+      const row = mountComponent({ fields: [] });
+      const td = row.find('td');
+      td.length.should.equal(1);
+      td[0].hasAttribute('colspan').should.be.false();
+    });
   });
 });

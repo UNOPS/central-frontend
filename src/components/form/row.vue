@@ -13,7 +13,13 @@ except according to the terms contained in the LICENSE file.
   <tr class="form-row">
     <td class="name">
       <link-if-can :to="primaryFormPath(form)">
-        <span>{{ form.nameOrId() }}</span><span class="icon-angle-right"></span>
+        <span v-if="form.publishedAt == null" class="icon-edit form-icon-unpublished form-icon"
+          :title="$t('formUnpublishedTip')"></span>
+        <span v-else-if="form.state === 'closed'" class="icon-ban form-icon-closed form-icon"
+          :title="$t('formClosedTip')"></span>
+        <span v-else-if="form.state === 'closing'" class="icon-clock-o form-icon-closing form-icon"
+          :title="$t('formClosingTip')"></span>
+        <span :class="[form.state === 'closed' ? 'form-name-closed' : '']">{{ form.nameOrId() }}</span><span class="icon-angle-right"></span>
       </link-if-can>
     </td>
     <td v-if="columns.has('idAndVersion')" class="id-and-version">
@@ -25,7 +31,7 @@ except according to the terms contained in the LICENSE file.
       </div>
     </td>
     <td v-if="columns.has('submissions')" class="submissions">
-      <div>
+      <div v-if="form.publishedAt != null">
         <router-link :to="submissionsPath">
           <span>{{ $tcn('count.submission', form.submissions) }}</span>
           <span class="icon-angle-right"></span>
@@ -92,45 +98,52 @@ export default {
 </script>
 
 <style lang="scss">
-@import '../../assets/scss/variables';
+@import '../../assets/scss/mixins';
 
 .form-row {
   .table tbody & td { vertical-align: middle; }
 
   .name {
-    .link-if-can { font-size: 30px; }
+    .link-if-can { font-size: 24px; }
+    a { @include text-link; }
 
-    a {
-      &, &:hover, &:focus {
-        color: inherit;
-        text-decoration: none;
-      }
+    .icon-angle-right {
+      font-size: 20px;
+      margin-left: 9px;
+    }
 
-      .icon-angle-right {
-        font-size: 20px;
-        margin-left: 12px;
-        vertical-align: 2px;
-      }
+    .form-icon {
+      font-size: 20px;
+      margin-right: 9px;
+      cursor: help;
+    }
+
+    .form-name-closed {
+      color: #999;
+    }
+
+    .form-icon-unpublished {
+      color: #999;
+    }
+
+    .form-icon-closed{
+      color: $color-danger;
+    }
+
+    .form-icon-closing{
+      color: $color-warning;
     }
   }
 
   .form-id, .version {
+    @include text-overflow-ellipsis;
     font-family: $font-family-monospace;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .version { color: #888; }
 
   .submissions {
-    a {
-      &, &:hover, &:focus {
-        color: inherit;
-        text-decoration: none;
-      }
-    }
-
+    a { @include text-link; }
     .icon-angle-right { margin-left: 6px; }
   }
 }
@@ -146,7 +159,10 @@ export default {
     "lastSubmission": "(last {dateTime})",
     "action": {
       "fill": "Fill Form"
-    }
+    },
+    "formClosedTip": "This Form is Closed. It is not downloadable and does not accept Submissions.",
+    "formClosingTip": "This Form is Closing. It is not downloadable but still accepts Submissions.",
+    "formUnpublishedTip": "This Form does not yet have a published version.",
   }
 }
 </i18n>
@@ -158,31 +174,52 @@ export default {
     "lastSubmission": "(poslední {dateTime})",
     "action": {
       "fill": "Vyplnit formulář"
-    }
+    },
+    "formClosedTip": "Tento formulář je uzavřen. Nelze jej stáhnout a nepřijímá příspěvky.",
+    "formClosingTip": "Tento formulář se uzavírá. Nelze jej stáhnout, ale stále přijímá příspěvky.",
+    "formUnpublishedTip": "Tento formulář dosud nemá publikovanou verzi."
   },
   "de": {
     "lastSubmission": "(zuletzt {dateTime})",
     "action": {
       "fill": "Formular ausfüllen"
-    }
+    },
+    "formClosedTip": "Dieses Formular ist geschlossen. Es kann nicht heruntergeladen werden und Übermittlungen werden nicht akzeptiert.",
+    "formClosingTip": "Dieses Formular steht auf Schließen. Es kann nicht heruntergeladen werden, aber Übermittlungen werden noch akzeptiert.",
+    "formUnpublishedTip": "Es gibt bisher noch keine veröffentlichte Version dieses Formulars."
   },
   "es": {
     "lastSubmission": "(último {dateTime})",
     "action": {
       "fill": "Llenar formulario"
-    }
+    },
+    "formClosedTip": "Este Formulario está cerrado. No se puede descargar y no acepta envíos.",
+    "formClosingTip": "Este Formulario se está cerrando. No se puede descargar, pero aún acepta Envíos.",
+    "formUnpublishedTip": "Este Formulario aún no tiene una versión publicada."
   },
   "fr": {
     "lastSubmission": "(dernière {dateTime})",
     "action": {
       "fill": "Remplir le formulaire"
-    }
+    },
+    "formClosedTip": "Ce formulaire est fermé. Il n'est plus téléchargeable et n'accepte plus de soumissions.",
+    "formClosingTip": "Ce formulaire est en cours de fermeture. Il n'est plus téléchargeable mais peut toujours recevoir des soumissions.",
+    "formUnpublishedTip": "Ce formulaire ne dispose pas encore de version publiée."
   },
   "id": {
     "lastSubmission": "(terakhir {dateTime})",
     "action": {
       "fill": "Isi Formulir"
     }
+  },
+  "ja": {
+    "lastSubmission": "（最終提出日時 {dateTime}）",
+    "action": {
+      "fill": "フォームに記入"
+    },
+    "formClosedTip": "このフォームは終了しています。ダウンロードやフォームの提出は出来ません。",
+    "formClosingTip": "このフォームはクロージング状態です。ダウンロードは出来ませんが、フォームの提出は受け付けています。",
+    "formUnpublishedTip": "このフォームは公開バージョンがまだありません。"
   }
 }
 </i18n>

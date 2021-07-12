@@ -34,7 +34,7 @@ except according to the terms contained in the LICENSE file.
     <td>
       <div class="dropdown">
         <button :id="actionsButtonId" type="button"
-          class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+          class="btn btn-default dropdown-toggle" data-toggle="dropdown"
           aria-haspopup="true" aria-expanded="false">
           <span class="icon-cog"></span><span class="caret"></span>
         </button>
@@ -226,6 +226,16 @@ export default {
     "cannotRetire": "Anda tidak dapat memberhentikan diri sendiri.",
     "action": {
       "retire": "Pengguna Berhenti"
+    }
+  },
+  "ja": {
+    "cannotAssignRole": "自分自身のサーバーでの役割を編集できません。",
+    "field": {
+      "sitewideRole": "サーバーでの役割"
+    },
+    "cannotRetire": "自分自身を除外させることはできません。",
+    "action": {
+      "retire": "ユーザーの除外"
     }
   }
 }

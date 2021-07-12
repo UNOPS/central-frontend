@@ -23,7 +23,8 @@ except according to the terms contained in the LICENSE file.
           <div class="panel-body">
             <template v-if="project.keyId == null">
               <p>
-                {{ $t('encryption.body.unencrypted[0]') }}
+                <span>{{ $t('encryption.body.unencrypted[0]') }}</span>
+                <sentence-separator/>
                 <doc-link to="central-encryption/">{{ $t('moreInfo.learnMore') }}</doc-link>
               </p>
               <p>
@@ -41,7 +42,7 @@ except according to the terms contained in the LICENSE file.
                     <strong>{{ $t('encryption.body.encrypted[0].enabled') }}</strong>
                   </template>
                 </i18n>
-                &nbsp;
+                <sentence-separator/>
                 <doc-link to="central-encryption/">{{ $t('moreInfo.learnMore') }}</doc-link>
               </p>
               <p>{{ $t('encryption.body.encrypted[1]') }}</p>
@@ -82,13 +83,21 @@ import DocLink from '../doc-link.vue';
 import ProjectArchive from './archive.vue';
 import ProjectEdit from './edit.vue';
 import ProjectEnableEncryption from './enable-encryption.vue';
+import SentenceSeparator from '../sentence-separator.vue';
+
 import modal from '../../mixins/modal';
 import routes from '../../mixins/routes';
 import { requestData } from '../../store/modules/request';
 
 export default {
   name: 'ProjectSettings',
-  components: { DocLink, ProjectArchive, ProjectEdit, ProjectEnableEncryption },
+  components: {
+    DocLink,
+    ProjectArchive,
+    ProjectEdit,
+    ProjectEnableEncryption,
+    SentenceSeparator
+  },
   mixins: [modal(), routes()],
   data() {
     return {
@@ -107,9 +116,10 @@ export default {
       this.$emit('fetch-project', true);
     },
     afterArchive(project) {
-      this.$router.push(this.projectPath(), () => {
-        this.$alert().success(this.$t('alert.archive', project));
-      });
+      this.$router.push(this.projectPath())
+        .then(() => {
+          this.$alert().success(this.$t('alert.archive', project));
+        });
     }
   }
 };
@@ -320,6 +330,38 @@ export default {
     },
     "alert": {
       "archive": "Proyek \"{name}\" telah diarsipkan."
+    }
+  },
+  "ja": {
+    "encryption": {
+      "title": "暗号化",
+      "body": {
+        "unencrypted": [
+          "このプロジェクトでは、提出フォームの暗号化は有効化されていません。"
+        ],
+        "encrypted": [
+          {
+            "full": "このプロジェクトの提出されたフォームの暗号化は、{enabled}",
+            "enabled": "有効にされています。"
+          },
+          "このバージョンのODK Centralでは、一度有効にされた暗号化は無効にできません。"
+        ]
+      },
+      "action": {
+        "enableEncryption": "暗号化を有効にする"
+      }
+    },
+    "dangerZone": {
+      "action": {
+        "archive": "このプロジェクトをアーカイブする"
+      },
+      "archived": [
+        "このプロジェクトはアーカイブされました。",
+        "このバージョンのODK Centralでは、プロジェクトの非アーカイブ化はできません。プロジェクトの非アーカイブ機能は将来的にリリースされる予定です。"
+      ]
+    },
+    "alert": {
+      "archive": "プロジェクト\"{name}\"はアーカイブされました。"
     }
   }
 }

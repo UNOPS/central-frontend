@@ -14,7 +14,7 @@ except according to the terms contained in the LICENSE file.
     <div class="col-xs-12 col-sm-offset-3 col-sm-6">
       <div class="panel panel-default panel-main">
         <div class="panel-heading">
-          <h1 class="panel-title">{{ $t('title') }}</h1>
+          <h1 class="panel-title">{{ $t('title.setPassword') }}</h1>
         </div>
         <div class="panel-body">
           <form @submit.prevent="submit">
@@ -71,10 +71,9 @@ export default {
         headers,
         data: { new: this.password }
       })
+        .then(() => this.$router.push('/login'))
         .then(() => {
-          this.$router.push('/login', () => {
-            this.$alert().success(this.$t('alert.success'));
-          });
+          this.$alert().success(this.$t('alert.success'));
         })
         .catch(noop);
     }
@@ -85,8 +84,6 @@ export default {
 <i18n lang="json5">
 {
   "en": {
-    // This is a title shown above a section of the page.
-    "title": "Set Password",
     "action": {
       "set": "Set password"
     },
@@ -105,7 +102,6 @@ export default {
 <i18n>
 {
   "cs": {
-    "title": "Nastavit heslo",
     "action": {
       "set": "Nastavit heslo"
     },
@@ -117,7 +113,6 @@ export default {
     }
   },
   "de": {
-    "title": "Passwort festlegen",
     "action": {
       "set": "Passwort festlegen"
     },
@@ -129,7 +124,6 @@ export default {
     }
   },
   "es": {
-    "title": "Establecer contraseña",
     "action": {
       "set": "Establecer contraseña"
     },
@@ -141,7 +135,6 @@ export default {
     }
   },
   "fr": {
-    "title": "Définir le mot de passe",
     "action": {
       "set": "Définir le mot de passe"
     },
@@ -153,7 +146,6 @@ export default {
     }
   },
   "id": {
-    "title": "Atur Kata Sandi",
     "action": {
       "set": "Atur kata sandi"
     },
@@ -162,6 +154,17 @@ export default {
     },
     "alert": {
       "success": "Kata sandi berhasil diatur ulang."
+    }
+  },
+  "ja": {
+    "action": {
+      "set": "パスワードの設定"
+    },
+    "problem": {
+      "401_2": "{message} メールに記載されているリンクの有効期限が切れている可能性があり、新たにメールを送信する必要があるようです。"
+    },
+    "alert": {
+      "success": "パスワードが正常にリセットされました。"
     }
   }
 }

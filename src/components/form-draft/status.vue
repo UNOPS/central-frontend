@@ -178,22 +178,25 @@ export default {
       this.$emit('fetch-form');
       this.$store.commit('clearData', 'formVersions');
       this.clearDraft();
-      this.$router.push(this.formPath(), () => {
-        this.$alert().success(this.$t('alert.publish'));
-      });
+      this.$router.push(this.formPath())
+        .then(() => {
+          this.$alert().success(this.$t('alert.publish'));
+        });
     },
     afterAbandon(form) {
       if (form.publishedAt != null) {
         this.clearDraft();
-        this.$router.push(this.formPath(), () => {
-          this.$alert().success(this.$t('alert.abandon'));
-        });
+        this.$router.push(this.formPath())
+          .then(() => {
+            this.$alert().success(this.$t('alert.abandon'));
+          });
       } else {
-        this.$router.push(this.projectPath(), () => {
-          this.$alert().success(this.$t('alert.delete', {
-            name: form.nameOrId()
-          }));
-        });
+        this.$router.push(this.projectPath())
+          .then(() => {
+            this.$alert().success(this.$t('alert.delete', {
+              name: form.nameOrId()
+            }));
+          });
       }
     }
   }
@@ -375,6 +378,33 @@ export default {
       "publish": "Draf Anda telah diterbitkan. Setiap perangkat yang mengambil Formulir dari Proyek ini akan menerima definisi formulir dan file media yang baru.",
       "abandon": "Versi draf dari formulir ini telah sukses dihapus.",
       "delete": "Formulir {name} sudah dihapus."
+    }
+  },
+  "ja": {
+    "draftChecklist": {
+      "title": "下書きのチェックリスト"
+    },
+    "currentDraft": {
+      "versionCaption": {
+        "full": "このフォームの{draftVersion}",
+        "draftVersion": "下書きバージョン名"
+      },
+      "action": {
+        "upload": "新規定義フォームのアップロード"
+      }
+    },
+    "actions": {
+      "title": "操作",
+      "action": {
+        "publish": "下書きの公開",
+        "abandon": "下書きの削除"
+      }
+    },
+    "alert": {
+      "upload": "成功です！新しい定義フォームが下書きとして保存されました。",
+      "publish": "あなたの下書きが公開されました。このプロジェクトのフォームを使用している全てのデバイスには、更新された定義フォームとメディアファイルが表示されます。",
+      "abandon": "このフォームの下書きは正常に削除されました。",
+      "delete": "フォーム\"{name}\"は削除されました。"
     }
   }
 }

@@ -43,21 +43,17 @@ except according to the terms contained in the LICENSE file.
 import { mapGetters } from 'vuex';
 
 import Form from '../../presenters/form';
-import { queryString } from '../../util/request';
+import { apiPaths } from '../../util/request';
 import { requestData } from '../../store/modules/request';
 
 export default {
   name: 'SubmissionDownloadDropdown',
   props: {
-    baseUrl: {
-      type: String,
-      required: true
-    },
     formVersion: {
       type: Form,
       required: true
     },
-    odataFilter: String // eslint-disable-line vue/require-default-prop
+    odataFilter: String
   },
   computed: {
     ...requestData(['fields', 'odataChunk']),
@@ -98,10 +94,15 @@ export default {
       }
     },
     href(extension, query = undefined) {
-      const queryWithFilter = this.odataFilter == null
-        ? query
-        : { ...query, $filter: this.odataFilter };
-      return `${this.baseUrl}/submissions${extension}${queryString(queryWithFilter)}`;
+      return apiPaths.submissions(
+        this.formVersion.projectId,
+        this.formVersion.xmlFormId,
+        this.formVersion.publishedAt == null,
+        extension,
+        this.odataFilter == null
+          ? query
+          : { ...query, $filter: this.odataFilter }
+      );
     }
   }
 };
@@ -135,9 +136,27 @@ export default {
     "action": {
       "download": {
         "unfiltered": "Stáhnout {count} záznam | Stáhout {count} záznamy | Stáhnout {count} záznamů | Stáhnout {count} záznamů",
+        "filtered": {
+          "withoutCount": "Stáhnout odpovídající záznamy",
+          "withCount": "Stáhnout {count} odpovídající záznam | Stáhnout {count} odpovídající záznamy | Stáhnout {count} odpovídajících záznamů | Stáhnout {count} odpovídající záznamy"
+        },
         "withMedia": "Všechna data a mediální soubory (.zip)",
         "withoutMedia": "Všechna data bez mediálních souborů (.zip)",
         "primaryDataTable": "Tabulka primárních dat (.csv)"
+      }
+    }
+  },
+  "de": {
+    "action": {
+      "download": {
+        "unfiltered": "{count} Datensatz herunterladen | {count} Datensätze herunterladen",
+        "filtered": {
+          "withoutCount": "Passende Datensätze herunterladen",
+          "withCount": "{count} passenden Datensatz herunterladen | {count} passende Datensätze herunterladen"
+        },
+        "withMedia": "Alle Daten und Mediendateien (.zip)",
+        "withoutMedia": "Alle Daten ohne Mediendateien (.zip)",
+        "primaryDataTable": "Primäre Datentabelle (.csv)"
       }
     }
   },
@@ -145,6 +164,10 @@ export default {
     "action": {
       "download": {
         "unfiltered": "Descargar {count} registros | Descargar {count} registros",
+        "filtered": {
+          "withoutCount": "Descargar registros coincidentes",
+          "withCount": "Descargar {count} registros coincidentes. | Descargar {count} registros coincidentes"
+        },
         "withMedia": "Todos los datos y archivos multimedia (.zip)",
         "withoutMedia": "Todos los datos sin archivos multimedia (.zip)",
         "primaryDataTable": "Tabla de datos primario (.csv)"
@@ -155,9 +178,41 @@ export default {
     "action": {
       "download": {
         "unfiltered": "Télécharger {count} soumission | Télécharger {count} soumissions",
+        "filtered": {
+          "withoutCount": "Télécharger les enregistrements correspondants",
+          "withCount": "Télécharger {count} enregistrement(s) correspondant(s) | Télécharger {count} enregistrement(s) correspondant(s)"
+        },
         "withMedia": "Toutes les données et fichiers médias (.zip)",
         "withoutMedia": "Toutes les données sans fichiers médias",
         "primaryDataTable": "Table primaire (sans \"repeats\") (.csv)"
+      }
+    }
+  },
+  "id": {
+    "action": {
+      "download": {
+        "unfiltered": "Unduh {count} pencatatan",
+        "filtered": {
+          "withoutCount": "Unduh pencatatan yang cocok",
+          "withCount": "Unduh {count} pencatatan yang cocok"
+        },
+        "withMedia": "Semua data dan berkas media (.zip)",
+        "withoutMedia": "Semua data tanpa berkas media (.zip)",
+        "primaryDataTable": "Tabel data primer (.csv)"
+      }
+    }
+  },
+  "ja": {
+    "action": {
+      "download": {
+        "unfiltered": "{count}件のレコードのダウンロード",
+        "filtered": {
+          "withoutCount": "照合されたレコードのダウンロード",
+          "withCount": "{count}件の該当レコードのダウンロード"
+        },
+        "withMedia": "全データとメディアファイルの保存（.zip形式）",
+        "withoutMedia": "メディアファイルを除く、全データの保存（.zip形式）",
+        "primaryDataTable": "データテーブル（.csv形式）"
       }
     }
   }

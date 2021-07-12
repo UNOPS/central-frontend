@@ -15,7 +15,17 @@ except according to the terms contained in the LICENSE file.
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build status](https://circleci.com/gh/getodk/central-frontend.svg?style=shield)](https://circleci.com/gh/getodk/central-frontend)
 
-ODK Central Frontend uses Vue.js to provide the frontend for [ODK Central](https://github.com/getodk/central). It is currently [under development](https://forum.getodk.org/t/whats-coming-in-central-over-the-next-few-years/19677).
+ODK Central is the [ODK](https://getodk.org/) server. It manages user accounts and permissions, stores form definitions, and allows data collection clients like ODK Collect to connect to it for form download and submission upload. ODK Central Frontend provides the frontend for ODK Central using Vue.js.
+
+This repository contains the code for the frontend of ODK Central. The [`central-backend`](https://github.com/getodk/central-backend) repository contains the code for the backend API server. The [`central`](https://github.com/getodk/central) repository contains the Docker code for building and running a production Central stack. You can find release notes in the `central` repository.
+
+**The `master` branch of this repository reflects ongoing development for the next version of ODK Central.** It may or may not be in sync with the `master` branch of the `central-backend` repository. For the latest stable version, see the [release tags](https://github.com/getodk/central-frontend/releases).
+
+You can learn more about ODK Central by visiting the [docs](https://docs.getodk.org/central-intro/).
+
+## Contributing
+
+We need your help to make ODK Central Frontend as useful as possible! Please see the [Contribution Guide](/CONTRIBUTING.md) for detailed information on discussion forums, project policies, code guidelines, and an overview of the software architecture.
 
 ## Setting up your development environment
 
@@ -25,13 +35,13 @@ Next, install dependencies by running `npm install`.
 
 Install NGINX. Depending on your operating system and how you install NGINX, you may need to change the absolute paths in the development [`nginx.conf`](/nginx.conf).
 
-You will also need to set up [ODK Central Backend](https://github.com/getodk/central-backend).
+You will also need to set up [ODK Central Backend](https://github.com/getodk/central-backend). You will need to create a user using an ODK Central Backend command line script. You will probably also want to promote that user to a sitewide administrator.
 
 ## Running in development
 
 Follow these instructions to run ODK Central Frontend in development. For deploying to production, see the next section.
 
-First, run ODK Central Backend. If you haven't already, you will need to create a user using an ODK Central Backend command line script. You will probably also want to promote that user to a sitewide administrator. See the [ODK Central Backend readme](https://github.com/getodk/central-backend) for more information.
+First, run ODK Central Backend.
 
 Next, build ODK Central Frontend files for development by running `npm run dev`. The files will be outputted to `dist/`. As you update the source code, the files will be automatically rebuilt.
 
@@ -41,24 +51,21 @@ Finally, run NGINX by changing the working directory to the root directory of th
 nginx -c "$PWD/nginx.conf" -p "$PWD/dist/"
 ```
 
-We specify `-p "$PWD/dist/"` so that relative paths in [`nginx.conf`](/nginx.conf) are relative to `dist/`.
-
-NGINX effectively places ODK Central Frontend and ODK Central Backend at the same origin, avoiding cross-origin requests.
+NGINX effectively places ODK Central Frontend and ODK Central Backend at the same origin, avoiding cross-origin requests. We specify `-p "$PWD/dist/"` so that relative paths in [`nginx.conf`](/nginx.conf) are relative to `dist/`.
 
 ODK Central Frontend will be available on port 8989.
 
-Some ODK Central Frontend functionality requires HTTPS, for example, downloading files from ODK Central Backend. To access this functionality in development, one option is to use [`ngrok`](https://ngrok.com/download). By default, ODK Central Frontend is available on port 8989, so you can run `ngrok http 8989` to expose a temporary HTTPS URL that you can use. Some functionality additionally requires you to specify the HTTPS URL to ODK Central Backend, for example, getting a form in ODK Collect. To do so, set the `default.env.domain` property in [`config/default.json`](https://github.com/getodk/central-backend/blob/master/config/default.json) to the HTTPS URL, then restart the ODK Central Backend server if it is already running.
+ODK Central Frontend communicates with ODK Central Backend in part using a session cookie. The cookie is `Secure`, but will be sent over HTTP on localhost. ODK Central Frontend also interacts with data collection clients and with services:
+
+- To upload an XLSForm, run [pyxform-http](https://github.com/getodk/pyxform-http). ODK Central Frontend communicates with pyxform-http through ODK Central Backend.
+- You can use ODK Collect to scan an app user QR code, download a form, and submit data. One option to do so is to use [`ngrok`](https://ngrok.com/download). ODK Central Frontend is available on port 8989, so you can run `ngrok http 8989` to expose a temporary HTTPS URL that you can use. Within ODK Central Backend, you will also need to set the `default.env.domain` property in [`config/default.json`](https://github.com/getodk/central-backend/blob/master/config/default.json) to the HTTPS URL, then restart ODK Central Backend if it is already running.
+- Enketo is a web form engine used to show form previews and allow for web-based data entry. Please see our [instructions](docs/enketo.md) for optionally setting up an Enketo server for use in _development_ (it is already included in the production ODK Central stack).
+
 
 ## Deploying to production
 
-To build ODK Central Frontend files for production with minification, run `npm run build`. The files will be outputted to `dist/`. For more details on this command, see the [documentation for Vue CLI](https://cli.vuejs.org/).
+To build ODK Central Frontend files for production with minification, run `npm run build`. The files will be outputted to `dist/`. For more details on this command, see the [documentation](https://cli.vuejs.org/) for Vue CLI.
 
 Note that this repository's `nginx.conf` is for development only.
 
-For more information on deploying to production, see the [ODK Central repository](https://github.com/getodk/central).
-
-## Testing
-
-To run unit tests, type `npm run test`.
-
-For linting, run `npm run lint`. We use [rules](/.eslintrc.json) based on the [Airbnb JavaScript style guide](https://github.com/airbnb/javascript).
+For more information on deploying to production, see the [`central`](https://github.com/getodk/central) repository.

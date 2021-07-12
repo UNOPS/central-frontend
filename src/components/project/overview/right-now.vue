@@ -176,6 +176,20 @@ export default {
       ],
       "forms": "Formulir"
     }
+  },
+  "ja": {
+    "appUsers": {
+      "full": [
+        "{appUsers}は、データ収集クライアントを用い、このプロジェクトのフォームのダウンロードと提出が可能です。"
+      ],
+      "appUsers": "アプリユーザー"
+    },
+    "forms": {
+      "full": [
+        "{forms}は、モバイル端末にダウンロードし、調査が可能です。"
+      ],
+      "forms": "フォーム"
+    }
   }
 }
 </i18n>

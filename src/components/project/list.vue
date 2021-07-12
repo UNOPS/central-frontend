@@ -197,18 +197,24 @@ export default {
       $('html, body').animate({ scrollTop });
     },
     afterCreate(project) {
-      this.$router.push(this.projectPath(project.id), () => {
-        this.$alert().success(this.$t('alert.create'));
-      });
+      this.$router.push(this.projectPath(project.id))
+        .then(() => {
+          this.$alert().success(this.$t('alert.create'));
+        });
     }
   }
 };
 </script>
 
 <style lang="scss">
+@import '../../assets/scss/variables';
+
 #project-list-heading {
-  margin-bottom: 30px;
-  margin-top: 25px;
+  background: $color-subpanel-background;
+  border-bottom: 1px solid $color-subpanel-border;
+  letter-spacing: -0.03em;
+  margin: 0 -15px 15px;
+  padding: 20px 15px;
 
   span {
     &:first-child {
@@ -536,6 +542,51 @@ export default {
     "emptyTable": "Tidak ada Proyek untuk dilihat.",
     "alert": {
       "create": "Proyek baru Anda telah sukses dibuat."
+    }
+  },
+  "ja": {
+    "heading": [
+      "Centralへようこそ",
+      "頑張って成し遂げましょう！"
+    ],
+    "gettingStarted": {
+      "title": "はじめに",
+      "body": [
+        {
+          "full": "何から手をつければいいのかわからない方のために、{docsWebsite}にはスタートアップガイドやユーザードキュメントが用意されています。",
+          "docsWebsite": "ODK DocsのWebサイト"
+        },
+        {
+          "full": "また、{forum}では、過去の質問を検索、または自分で質問をすることで、いつでもコミュニティメンバーの助けを得られます。",
+          "forum": "ODKコミュニティーフォーラム"
+        }
+      ]
+    },
+    "news": "ニュース",
+    "rightNow": {
+      "users": {
+        "full": [
+          "{webUsers}は、プロジェクトの管理ができます。"
+        ],
+        "webUsers": "Webユーザー"
+      },
+      "projects": {
+        "full": [
+          "{projects}はデバイスに対してフォームとアプリユーザーの管理ができます。"
+        ],
+        "projects": "プロジェクト"
+      }
+    },
+    "projectsTitle": "プロジェクト",
+    "action": {
+      "create": "新規作成"
+    },
+    "header": {
+      "forms": "フォーム"
+    },
+    "emptyTable": "あなたが閲覧できるプロジェクトはありません。",
+    "alert": {
+      "create": "新規プロジェクトは正しく作成されました。"
     }
   }
 }

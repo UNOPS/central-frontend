@@ -18,21 +18,20 @@ $color-page-background: #f7f7f7;
 // Text
 $color-text: #333;
 $font-family-monospace: Menlo, Monaco, Consolas, "Courier New", monospace;
-// 15-17 words per line
-$max-width-p: 600px;
 
 // Icons
 $margin-right-icon: 6px;
 
 // Contextual colors
-$color-success: #0d840f;
+$color-success: #08a10b;
 $color-success-light: #ddf1d5;
 $color-success-dark: darken($color-success, 10%);
 $color-info: #31708f;
 $color-info-light: #d9edf7;
 $color-info-dark: darken($color-info, 10%);
-$color-warning: #f5c93b;
-$color-danger: #d42c2c;
+$color-warning: #f29e00;
+$color-warning-light: #f5c93b;
+$color-danger: #de2a11;
 $color-danger-light: #ffe6e6;
 $color-danger-dark: darken($color-danger, 10%);
 
@@ -46,10 +45,13 @@ $color-input: #555;
 $color-input-inactive: #777;
 $color-input-background: #eee;
 $color-panel-input-background: #f7f7f7;
-$font-size-button: 12px;
+$font-size-btn: 12px;
+$hpadding-btn: 10px;
+$padding-bottom-btn: 5px;
+$padding-top-btn: 6px;
 
 // Dropdowns
-$font-size-dropdown-menu: $font-size-button;
+$font-size-dropdown-menu: $font-size-btn;
 $min-width-dropdown-menu: 150px;
 
 // Tables
@@ -66,11 +68,16 @@ $padding-left-table-data: 8px;
 $padding-right-table-data: 8px;
 $padding-top-table-data: 8px;
 
+// Panels
+$box-shadow-panel-main: 0 0 24px rgba(0, 0, 0, 0.25), 0 35px 115px rgba(0, 0, 0, 0.28);
+
 $color-subpanel-background: #eee;
 $color-subpanel-active: #ddd;
 $color-subpanel-border: #e6e6e6;
 $color-subpanel-border-strong: #c3c3c3;
 
+// Easing
+$ease-extreme-out: cubic-bezier(.05, .9, 0, 1);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,6 +88,9 @@ $padding-modal-body: 15px;
 
 // PageBody
 $margin-top-page-body: 20px;
+
+// PageSection
+$margin-bottom-page-section: 35px;
 
 // Popover
 $box-shadow-popover: 0 5px 10px rgba(0, 0, 0, 0.2);

@@ -15,19 +15,18 @@ except according to the terms contained in the LICENSE file.
       <template #title>{{ $t('steps[0].title') }}</template>
       <p>
         <strong>{{ $t('steps[0].body[0]') }}</strong>
-        {{ $t('steps[0].body[1]') }}
+        <sentence-separator/>
+        <span>{{ $t('steps[0].body[1]') }}</span>
+        <sentence-separator/>
         <doc-link to="central-forms/#updating-forms-to-a-new-version">{{ $t('clickForInfo') }}</doc-link>
       </p>
     </checklist-step>
     <checklist-step :stage="stepStage(1)">
       <template #title>{{ $t('steps[1].title') }}</template>
       <p>
-        <template v-if="form.submissions === 0">
-          {{ $t('steps[1].body[0].none') }}
-        </template>
-        <template v-else>
-          {{ $tcn('steps[1].body[0].any', form.submissions) }}
-        </template>
+        <template v-if="form.submissions === 0">{{ $t('steps[1].body[0].none') }}</template>
+        <template v-else>{{ $tcn('steps[1].body[0].any', form.submissions) }}</template>
+        <sentence-separator/>
         <i18n :tag="false" path="steps[1].body[1].full">
           <template #clickHere>
             <a href="#" @click.prevent="$emit('show-submission-options')">{{ $t('steps[1].body[1].clickHere') }}</a>
@@ -38,18 +37,15 @@ except according to the terms contained in the LICENSE file.
     <checklist-step :stage="stepStage(2)">
       <template #title>{{ $t('steps[2].title') }}</template>
       <p>
-        <template v-if="form.submissions === 0">
-          {{ $t('steps[2].body[0].none') }}
-        </template>
-        <template v-else>
-          {{ $tcn('steps[2].body[0].any', form.submissions) }}
-        </template>
+        <template v-if="form.submissions === 0">{{ $t('steps[2].body[0].none') }}</template>
+        <template v-else>{{ $tcn('steps[2].body[0].any', form.submissions) }}</template>
+        <sentence-separator/>
         <i18n :tag="false" path="steps[2].body[1].full">
           <template #submissionsTab>
             <router-link :to="formPath('submissions')">{{ $t('steps[2].body[1].submissionsTab') }}</router-link>
           </template>
         </i18n>
-        &nbsp;
+        <sentence-separator/>
         <doc-link to="central-submissions/">{{ $t('clickForInfo') }}</doc-link>
       </p>
     </checklist-step>
@@ -61,7 +57,7 @@ except according to the terms contained in the LICENSE file.
             <router-link :to="projectPath('form-access')">{{ $t('steps[3].body[0].formAccessTab') }}</router-link>
           </template>
         </i18n>
-        &nbsp;
+        <sentence-separator/>
         <doc-link to="central-forms/#managing-form-lifecycle">{{ $t('clickForInfo') }}</doc-link>
       </p>
     </checklist-step>
@@ -71,6 +67,8 @@ except according to the terms contained in the LICENSE file.
 <script>
 import ChecklistStep from '../checklist-step.vue';
 import DocLink from '../doc-link.vue';
+import SentenceSeparator from '../sentence-separator.vue';
+
 import routes from '../../mixins/routes';
 import { requestData } from '../../store/modules/request';
 
@@ -80,7 +78,7 @@ const requestKeys = ['project', 'form'];
 
 export default {
   name: 'FormChecklist',
-  components: { ChecklistStep, DocLink },
+  components: { ChecklistStep, DocLink, SentenceSeparator },
   mixins: [routes()],
   computed: {
     ...requestData(requestKeys),
@@ -399,6 +397,53 @@ export default {
           {
             "full": "Setelah Anda selesai mengumpulkan data, Anda bisa menggunakan pengaturan Status Formulir pada {formAccessTab} untuk mengatur, misalnya, apakah Pengguna Aplikasi masih bisa melihat atau membuat kiriman data baru untuk formulir ini.",
             "formAccessTab": "Tab Akses Formulir pada laman Proyek"
+          }
+        ]
+      }
+    ]
+  },
+  "ja": {
+    "clickForInfo": "さらに詳細を知るには、こちらをクリックして下さい。",
+    "steps": [
+      {
+        "title": "最初の下書きバージョンを公開",
+        "body": [
+          "お疲れ様でした！",
+          "フォームは公開されました。フォームの提出を受付ける準備が整いました。このフォームや関連するメディアファイルに変更を行いたい場合、新しい下書きフォームを作成することができます。"
+        ]
+      },
+      {
+        "title": "調査クライアントへのフォームのダウンロードとフォームの提出",
+        "body": [
+          {
+            "none": "このフォームには、どなたもまだデータを提出していません。",
+            "any": "合計{count}件のフォームの提出が完了しました。"
+          },
+          {
+            "full": "{clickHere}して、様々なフォーム提出の方法を知る。",
+            "clickHere": "ここをクリック"
+          }
+        ]
+      },
+      {
+        "title": "提出されたデータの評価と解析",
+        "body": [
+          {
+            "none": "このフォームのデータがあれば、それをエクスポートまたは同期して、その品質と結果を、監視および解析することができます。",
+            "any": "このフォームの{count}件の提出済フォームをエクスポートまたは同期して、その品質と結果を、監視および解析することができます。"
+          },
+          {
+            "full": "{submissionsTab}の「ダウンロード」と「解析」ボタンで行うことができます。",
+            "submissionsTab": "提出済フォームのタブ"
+          }
+        ]
+      },
+      {
+        "title": "フォームへのアクセス除外者を管理",
+        "body": [
+          {
+            "full": "あなたはデータ収集を終えましたので、{formAccessTab}にあるフォームの状態のコントロールを使って、これから先、例えば、アプリユーザーがこのフォームを閲覧できるか、新しい提出フォームを作成できるかを設定できます。",
+            "formAccessTab": "プロジェクトページのフォームアクセスタブ"
           }
         ]
       }

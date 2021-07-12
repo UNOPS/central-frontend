@@ -10,11 +10,11 @@ including this file, may be copied, modified, propagated, or distributed
 except according to the terms contained in the LICENSE file.
 -->
 <template>
-  <a v-if="disabledTitle == null" class="enketo-preview btn btn-primary"
+  <a v-if="disabledTitle == null" class="enketo-preview btn btn-default"
     :href="href" target="_blank">
     <span class="icon-eye"></span>{{ $t('action.preview') }}
   </a>
-  <button v-else type="button" class="enketo-preview btn btn-primary" disabled
+  <button v-else type="button" class="enketo-preview btn btn-default" disabled
     :title="disabledTitle">
     <span class="icon-eye"></span>{{ $t('action.preview') }}
   </button>
@@ -111,6 +111,15 @@ export default {
     "disabled": {
       "processing": "Pratinjau untuk formulir ini masih dalam proses pengerjaan. Silakan muat ulang dan coba lagi nanti.",
       "notOpen": "Pada versi ODK Central ini, pratinjau hanya tersedia untuk formulir dalam kondisi terbuka."
+    }
+  },
+  "ja": {
+    "action": {
+      "preview": "プレビュー"
+    },
+    "disabled": {
+      "processing": "このフォームのプレビュー処理が終了していません。後ほどページを更新し、もう一度試して下さい。",
+      "notOpen": "このバージョンのODK Centralでは、プレビューは、公開状態のフォームでのみ利用可能です。"
     }
   }
 }

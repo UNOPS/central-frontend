@@ -82,8 +82,7 @@ some point. -->
         <template v-else-if="shownDuringUpload">
           <p>{{ $tcn('duringUpload.total', uploadStatus.total) }}</p>
           <p id="form-attachment-popups-current">
-            <strong>{{ $t('duringUpload.current', { filename: uploadStatus.current }) }}</strong>
-            <span v-if="hasProgress">&nbsp;({{ percentLoaded }})</span>
+            <strong>{{ $t('duringUpload.current', { filename: uploadStatus.current, percentUploaded }) }}</strong>
           </p>
           <p v-if="uploadStatus.total !== 1">
             <template v-if="uploadStatus.remaining > 1">
@@ -145,13 +144,12 @@ export default {
       return this.shownDuringDragover || this.shownAfterSelection ||
         this.shownDuringUpload;
     },
-    hasProgress() {
+    percentUploaded() {
       const { progress } = this.uploadStatus;
-      return progress != null && progress.lengthComputable;
-    },
-    percentLoaded() {
-      const { loaded, total } = this.uploadStatus.progress;
-      return this.$n(loaded / total, 'percent');
+      const fraction = progress != null && progress.lengthComputable
+        ? progress.loaded / progress.total
+        : 0;
+      return this.$n(fraction, 'percent');
     }
   },
   updated() {
@@ -227,7 +225,7 @@ $popup-width: 300px;
     #form-attachment-popups-unmatched {
       $padding: 10px;
 
-      background-color: $color-warning;
+      background-color: $color-warning-light;
       font-size: 12px;
       line-height: 14px;
       margin-bottom: 17px;
@@ -299,7 +297,7 @@ $popup-width: 300px;
     "duringUpload": {
       "total": "Please wait, uploading your {count} file: | Please wait, uploading your {count} files:",
       // Displayed in a pop-up to indicate a Media File that is currently being uploaded to be attached to a Form.
-      "current": "Sending {filename}",
+      "current": "Sending {filename} ({percentUploaded})",
       "remaining": {
         "beforeLast": "{count} file remains. | {count} files remain.",
         "last": "This is the last file."
@@ -345,7 +343,7 @@ $popup-width: 300px;
     },
     "duringUpload": {
       "total": "Čekejte prosím, nahráváme {count} soubor: | Čekejte prosím, nahráváme {count} soubory: | Čekejte prosím, nahráváme {count} souborů: | Čekejte prosím, nahráváme {count} souborů:",
-      "current": "Odesílání {filename}",
+      "current": "Odesílání {filename} ({percentUploaded})",
       "remaining": {
         "beforeLast": "{count} soubor zbývá. | {count} soubory zbývají. | {count} souborů zbývá. | {count} souborů zbývá.",
         "last": "Toto je poslední soubor."
@@ -381,7 +379,6 @@ $popup-width: 300px;
     },
     "duringUpload": {
       "total": "Bitte warten Sie, {count} Datei wird hochgeladen. | Bitte warten Sie, {count} Dateien werden hochgeladen.",
-      "current": "Datei {filename} wird gesendet.",
       "remaining": {
         "beforeLast": "Noch {count} Datei | Noch {count} Dateien",
         "last": "Dies ist die letzte Datei"
@@ -417,7 +414,7 @@ $popup-width: 300px;
     },
     "duringUpload": {
       "total": "Por favor espere, cargando su {count} archivo: | Por favor espere, cargando sus {count} archivos:",
-      "current": "Enviando {filename}",
+      "current": "Enviando {filename} ({percentUploaded})",
       "remaining": {
         "beforeLast": "{count} archivo permanece. | {count} archivos permanecen.",
         "last": "Este es el último archivo."
@@ -453,7 +450,6 @@ $popup-width: 300px;
     },
     "duringUpload": {
       "total": "Merci de patienter, téléversement de votre {count} fichier en cours : | Merci de patienter, téléversement de vos {count} fichiers en cours :",
-      "current": "Envoi en cours de {filename}",
       "remaining": {
         "beforeLast": "{count} fichier restant. | {count} fichiers restants.",
         "last": "Ceci est le dernier fichier."
@@ -487,10 +483,43 @@ $popup-width: 300px;
     },
     "duringUpload": {
       "total": "Mohon tungguh, menunggah {count} dokumen:",
-      "current": "Mengirim {filename}",
       "remaining": {
         "beforeLast": "Tersisa {count} dokumen.",
         "last": "Ini adalah dokumen terakhir."
+      }
+    }
+  },
+  "ja": {
+    "title": "ファイルのアップロード",
+    "duringDragover": {
+      "dropToUpload": "このファイルを{attachmentName}としてアップロードする。",
+      "dragover": "置換したいファイル対象に、ファイルをドラッグ&ドロップするとアップロードされます。",
+      "dropToPrepare": {
+        "full": "このフォームにアップロードする{countOfFiles}を準備し、今すぐドロップしてください。",
+        "countOfFiles": "{count}件のファイル"
+      }
+    },
+    "afterSelection": {
+      "matched": {
+        "full": [
+          "{countOfFiles}はアップロードできます。"
+        ],
+        "countOfFiles": "{count}件のファイル"
+      },
+      "someUnmatched": {
+        "full": [
+          "{countOfFiles}は認識できない名前のため無視されます。これらのアップロードには、名前を変更するか、それぞれ個別にアップロード対象にドラッグ＆ドロップしてください。"
+        ],
+        "countOfFiles": "{count}件のファイル"
+      },
+      "noneMatched": "アップロードを試みているファイルが何れも認識できません。上記の名前に合わせてファイル名を変更するか、それぞれ個別に対象にドラッグしてください。"
+    },
+    "duringUpload": {
+      "total": "お待ちください。{count}をアップロードしています。",
+      "current": "{filename}を送信中（{percentUploaded}）",
+      "remaining": {
+        "beforeLast": "{count}件のファイルが残っています。",
+        "last": "末尾のデータ"
       }
     }
   }

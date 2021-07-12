@@ -131,6 +131,15 @@ export default {
   .page-section-heading > span:first-child {
     color: $color-accent-secondary;
   }
+
+  .btn-default {
+    background-color: #ccc;
+
+    &:hover, &:focus, &:active:focus {
+      background-color: #bbb;
+      &[disabled] { background-color: #ccc; }
+    }
+  }
 }
 </style>
 
@@ -230,6 +239,21 @@ export default {
         "versionCaption": {
           "full": "{draftVersion} dari formulir ini.",
           "draftVersion": "Versi draf"
+        }
+      }
+    }
+  },
+  "ja": {
+    "checklist": "チェックリスト",
+    "draft": {
+      "none": {
+        "title": "現在、下書きはありません。",
+        "body": "現在、このフォームの下書きはありません。フォームやメディアファイルに変更を加えたい場合は、まず上のボタンで新規下書きを作成して下さい。"
+      },
+      "any": {
+        "versionCaption": {
+          "full": "このフォームの{draftVersion}",
+          "draftVersion": "下書きバージョン"
         }
       }
     }

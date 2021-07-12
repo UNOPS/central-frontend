@@ -9,17 +9,17 @@ https://www.apache.org/licenses/LICENSE-2.0. No part of ODK Central,
 including this file, may be copied, modified, propagated, or distributed
 except according to the terms contained in the LICENSE file.
 */
-import Vue from 'vue';
 import VueRouter from 'vue-router';
 import { last } from 'ramda';
 
-import i18n from './i18n';
 import routes from './routes';
 import store from './store';
-import { canRoute, forceReplace, preservesData } from './util/router';
+import { canRoute, confirmUnsavedChanges, forceReplace, preservesData, updateDocumentTitle } from './util/router';
 import { keys as requestKeys } from './store/modules/request/keys';
 import { loadAsync } from './util/async-components';
 import { loadLocale } from './util/i18n';
+import { localStore } from './util/storage';
+import { logIn, restoreSession } from './util/session';
 import { noop } from './util/util';
 
 const router = new VueRouter({ routes });
@@ -31,14 +31,8 @@ export default router;
 // ROUTER STATE
 
 // Set select properties of store.state.router.
-
-router.beforeEach((to, from, next) => {
-  store.commit('triggerNavigation');
-  next();
-});
 router.afterEach(to => {
-  store.commit('setCurrentRoute', to);
-  store.commit('confirmNavigation');
+  store.commit('confirmNavigation', to);
 });
 
 
@@ -70,26 +64,16 @@ router.afterEach(to => {
 // INITIAL REQUESTS
 
 const initialLocale = () => {
-  try {
-    const locale = localStorage.getItem('locale');
-    if (locale != null) return locale;
-  } catch (e) {}
-  return navigator.language.split('-', 1)[0];
+  const locale = localStore.getItem('locale');
+  return locale != null ? locale : navigator.language.split('-', 1)[0];
 };
 
 // Implements the restoreSession meta field.
-const restoreSession = (to) => {
-  if (!last(to.matched).meta.restoreSession) return Promise.resolve();
-  return Vue.prototype.$http.get('/v1/sessions/restore')
-    .then(({ data }) => store.dispatch('get', [{
-      key: 'currentUser',
-      url: '/users/current',
-      headers: { Authorization: `Bearer ${data.token}` },
-      extended: true,
-      success: () => {
-        store.commit('setData', { key: 'session', value: data });
-      }
-    }]));
+const restoreSessionForRoute = async (to) => {
+  if (last(to.matched).meta.restoreSession) {
+    await restoreSession(store);
+    await logIn(router, store, false);
+  }
 };
 
 router.beforeEach((to, from, next) => {
@@ -98,15 +82,11 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
-  Promise.all([
-    loadLocale(initialLocale()).catch(noop),
-    restoreSession(to).catch(noop)
-  ])
+  Promise.allSettled([loadLocale(initialLocale()), restoreSessionForRoute(to)])
     .then(() => {
       store.commit('setSendInitialRequests', false);
       next();
-    })
-    .catch(noop);
+    });
 });
 
 
@@ -144,8 +124,7 @@ router.afterEach((to, from) => {
   for (const key of requestKeys) {
     if (!preservesData(key, to, from)) {
       if (store.state.request.data[key] != null) store.commit('clearData', key);
-      if (store.state.request.requests[key].last.state === 'loading')
-        store.commit('cancelRequest', key);
+      if (store.getters.loading(key)) store.commit('cancelRequest', key);
     }
   }
 });
@@ -161,7 +140,7 @@ router.beforeEach((to, from, next) => {
 
 /*
 Set up watchers on the response data, and update them whenever the validateData
-meta field changes.
+or title.key meta field changes.
 
 If a component sets up its own watchers on the response data, they should be run
 after the router's watchers. (That might not be the case if the component
@@ -174,10 +153,18 @@ of the `key` attribute.)
     while (unwatch.length !== 0)
       unwatch.pop()();
 
-    for (const [key, validator] of last(to.matched).meta.validateData) {
+    const { meta } = last(to.matched);
+    for (const [key, validator] of meta.validateData) {
       unwatch.push(store.watch((state) => state.request.data[key], (value) => {
         if (value != null && !validator(value))
           forceReplace(router, store, '/');
+      }));
+    }
+
+    if (meta.title.key != null) {
+      const { key } = meta.title;
+      unwatch.push(store.watch((state) => state.request.data[key], () => {
+        updateDocumentTitle(to, store);
       }));
     }
   });
@@ -196,14 +183,7 @@ window.addEventListener('beforeunload', (event) => {
 });
 
 router.beforeEach((to, from, next) => {
-  if (!store.state.router.unsavedChanges) {
-    next();
-    return;
-  }
-
-  // eslint-disable-next-line no-alert
-  const result = window.confirm(i18n.t('router.unsavedChanges'));
-  if (result)
+  if (confirmUnsavedChanges(store))
     next();
   else
     next(false);
@@ -221,4 +201,12 @@ router.afterEach(() => {
 
 router.afterEach(() => {
   if (store.state.alert.state) store.commit('hideAlert');
+});
+
+
+////////////////////////////////////////////////////////////////////////////////
+// PAGE TITLES
+
+router.afterEach((to) => {
+  updateDocumentTitle(to, store);
 });

@@ -13,11 +13,11 @@ except according to the terms contained in the LICENSE file.
   <table id="audit-table" class="table">
     <thead>
       <tr>
-        <th>{{ $t('header.time') }}</th>
+        <th class="logged-at">{{ $t('header.time') }}</th>
         <th>{{ $t('header.type') }}</th>
         <th>{{ $t('header.initiator') }}</th>
         <th>{{ $t('header.target') }}</th>
-        <th class="details">{{ $t('header.details') }}</th>
+        <th>{{ $t('header.details') }}</th>
       </tr>
     </thead>
     <tbody v-if="audits != null">
@@ -33,7 +33,7 @@ export default {
   name: 'AuditTable',
   components: { AuditRow },
   props: {
-    audits: Array // eslint-disable-line vue/require-default-prop
+    audits: Array
   }
 };
 </script>
@@ -41,6 +41,7 @@ export default {
 <style lang="scss">
 #audit-table {
   table-layout: fixed;
+  th.logged-at { width: 150px; }
 }
 </style>
 
@@ -48,7 +49,6 @@ export default {
 {
   "en": {
     "header": {
-      "time": "Time",
       "initiator": "Initiator",
       "target": "Target",
       "details": "Details"
@@ -62,7 +62,6 @@ export default {
 {
   "cs": {
     "header": {
-      "time": "Čas",
       "initiator": "Iniciátor",
       "target": "Cíl",
       "details": "Detaily"
@@ -70,7 +69,6 @@ export default {
   },
   "de": {
     "header": {
-      "time": "Zeit",
       "initiator": "Initiator",
       "target": "Ziel",
       "details": "Details"
@@ -78,7 +76,6 @@ export default {
   },
   "es": {
     "header": {
-      "time": "Hora",
       "initiator": "Iniciador",
       "target": "Objetivo",
       "details": "Detalles"
@@ -86,7 +83,6 @@ export default {
   },
   "fr": {
     "header": {
-      "time": "Heure",
       "initiator": "Initiateur",
       "target": "Cible",
       "details": "Détails"
@@ -94,10 +90,16 @@ export default {
   },
   "id": {
     "header": {
-      "time": "Waktu",
       "initiator": "Pemrakarsa",
       "target": "Target",
       "details": "Rincian"
+    }
+  },
+  "ja": {
+    "header": {
+      "initiator": "操作者",
+      "target": "操作の対象",
+      "details": "詳細"
     }
   }
 }

@@ -163,7 +163,12 @@ export default {
 
 .form-inline .flatpickr-input {
   // Leave space for the .close button.
-  width: 201px;
-  &.required { width: 189px };
+  width: 205px;
+  &.required { width: 193px };
+
+  &:lang(ja) {
+    width: 252px;
+    &.required { width: 240px; }
+  }
 }
 </style>

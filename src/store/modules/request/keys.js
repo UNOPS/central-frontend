@@ -50,11 +50,13 @@ export const keys = [
   // Encryption keys for a particular form version
   'keys',
   'submitters',
+  'submission',
+  'audits',
+  'comments',
   'publicLinks',
   'fieldKeys',
 
-  'backupsConfig',
-  'audits'
+  'backupsConfig'
 ];
 
 
@@ -91,10 +93,11 @@ export const transforms = {
     ...data,
     filtered: config.url.includes('%24filter=')
   }),
+  submission: ({ data }) => data.value[0],
+  audits: ({ data }) => data.map(audit => new Audit(audit)),
   fieldKeys: ({ data }) => data.map(fieldKey => new FieldKey(fieldKey)),
 
-  backupsConfig: option(),
-  audits: ({ data }) => data.map(audit => new Audit(audit))
+  backupsConfig: option()
 };
 
 

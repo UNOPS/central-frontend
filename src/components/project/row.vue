@@ -14,6 +14,8 @@ except according to the terms contained in the LICENSE file.
     <td>
       <div class="name">
         <router-link :to="projectPath(project.id)">
+          <span v-if="project.keyId" class="icon-lock project-icon"
+            :title="$t('encryptionTip')"></span>
           <span>{{ project.nameWithArchived() }}</span>
           <span class="icon-angle-right"></span>
         </router-link>
@@ -53,6 +55,8 @@ export default {
 </script>
 
 <style lang="scss">
+@import '../../assets/scss/mixins';
+
 .project-row {
   .table tbody & td { vertical-align: middle; }
 
@@ -60,17 +64,20 @@ export default {
 
   .name {
     a {
+      @include text-link;
       font-size: 24px;
-
-      &, &:hover, &:focus {
-        color: inherit;
-        text-decoration: none;
-      }
     }
 
     .icon-angle-right {
       font-size: 20px;
       margin-left: 9px;
+    }
+
+    .project-icon {
+      font-size: 20px;
+      cursor: help;
+      color: #999;
+      margin-right: 9px;
     }
   }
 }
@@ -82,7 +89,8 @@ export default {
     "help": "What are Projects?",
     // This text is shown under the "Latest Submission" column of the Projects
     // table. It is shown for a Project with no Submissions.
-    "noSubmission": "(none)"
+    "noSubmission": "(none)",
+    "encryptionTip": "This Project uses managed encryption.",
   }
 }
 </i18n>
@@ -92,23 +100,32 @@ export default {
 {
   "cs": {
     "help": "Co jsou Projekty?",
-    "noSubmission": "(žádné)"
+    "noSubmission": "(žádné)",
+    "encryptionTip": "Tento projekt používá spravované šifrování."
   },
   "de": {
     "help": "Was sind Projekte?",
-    "noSubmission": "(keine)"
+    "noSubmission": "(keine)",
+    "encryptionTip": "Dieses Projekt verwendet verwaltete Verschlüsselung."
   },
   "es": {
     "help": "¿Qué son los Proyectos?",
-    "noSubmission": "(ninguno)"
+    "noSubmission": "(ninguno)",
+    "encryptionTip": "Este proyecto utiliza cifrado administrado."
   },
   "fr": {
     "help": "Que sont les \"Projets\" ?",
-    "noSubmission": "(aucune)"
+    "noSubmission": "(aucune)",
+    "encryptionTip": "Ce projet est chiffré"
   },
   "id": {
     "help": "Apa itu Proyek?",
     "noSubmission": "(tidak ada)"
+  },
+  "ja": {
+    "help": "プロジェクトとは？",
+    "noSubmission": "（なし）",
+    "encryptionTip": "このプロジェクトは管理された暗号化を使用しています。"
   }
 }
 </i18n>

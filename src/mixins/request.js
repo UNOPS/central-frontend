@@ -30,6 +30,7 @@ property:
     directly mutate this property after defining it.
 */
 
+import i18n from '../i18n';
 import { configForPossibleBackendRequest, isProblem, logAxiosError, requestAlertMessage } from '../util/request';
 
 /*
@@ -42,19 +43,19 @@ of validateStatus). It also accepts the following options:
     not a rejected, promise. Use fulfillProblem to identify such responses.
     fulfillProblem is passed the Backend Problem. (Any error response that is
     not a Problem is automatically considered unsuccessful.) fulfillProblem
-    should return `true` if the response should be considered successful and
-    `false` if not.
-  - problemToAlert. If the request results in an error, request() shows an
-    alert. By default, the alert message is the same as that of the Backend
+    should return `true` if the response is considered successful and `false` if
+    not.
+  - problemToAlert. If the request results in an error response, request() shows
+    an alert. By default, the alert message is the same as that of the Backend
     Problem. However, there are two ways to show a different message:
 
     1. If a function is specified for problemToAlert, request() passes the
        Problem to the function, which has the option to return a different
        message. If the function returns `null` or `undefined`, the Problem's
        message is used.
-    2. If (and only if) problemToAlert has not been specified, request() will
-       check whether the component has specified an i18n message for the Problem
-       code. For example:
+    2. If problemToAlert has not been specified, request() will check whether
+       the component has specified an i18n message for the Problem code. For
+       example:
 
        <i18n lang="json5">
        {
@@ -69,14 +70,14 @@ of validateStatus). It also accepts the following options:
 Return Value
 ------------
 
-request() returns a promise. The promise will be rejected if the request results
-in an error or if the user navigates away from the route that sent the request.
-Otherwise the promise should be fulfilled.
+request() returns a promise. The promise will be rejected if the request is
+invalid or results in an error response or if the user navigates away from the
+route that sent the request. Otherwise the promise should be fulfilled.
 
-If you call then() on the promise, note that the request will no longer be in
-progress when the then() callback is run (awaitingResponse will equal `false`).
-If you call catch() on the promise, your logic should not assume that the
-request resulted in an error. Before the then() or catch() callback is run, Vue
+If you call then() on the promise, note that the request will not be in progress
+when the then() callback is run (awaitingResponse will equal `false`). If you
+call catch() on the promise, your logic should not assume that the request
+resulted in an error response. Before the then() or catch() callback is run, Vue
 will react to the change in awaitingResponse from `true` to `false`, running
 watchers and updating the DOM.
 */
@@ -91,6 +92,13 @@ function request({
   if (axiosConfig.validateStatus != null)
     throw new Error('validateStatus is not supported. Use fulfillProblem instead.');
 
+  const { data } = axiosConfig;
+  // This limit is set in the nginx config. The alert also mentions this number.
+  if (data != null && data instanceof File && data.size > 100000000) {
+    this.$alert().danger(i18n.t('mixin.request.alert.fileSize', data));
+    return Promise.reject(new Error('file size exceeds limit'));
+  }
+
   if (this.awaitingResponse != null) this.awaitingResponse = true;
 
   const { session } = this.$store.state.request.data;
@@ -102,18 +110,18 @@ function request({
       // destroyed.
       if (this.$store.state.router.currentRoute !== currentRoute)
         throw new Error('route change');
-      if (this.awaitingResponse != null) this.awaitingResponse = false;
 
       if (fulfillProblem != null && error.response != null &&
         isProblem(error.response.data) && fulfillProblem(error.response.data))
         return error.response;
 
+      if (this.awaitingResponse != null) this.awaitingResponse = false;
+
       logAxiosError(error);
-      const message = requestAlertMessage(error, {
+      this.$alert().danger(requestAlertMessage(error, {
         problemToAlert,
         component: this
-      });
-      this.$store.commit('setAlert', { type: 'danger', message });
+      }));
       throw error;
     })
     .then(response => {
@@ -134,8 +142,10 @@ const mixin = {
   },
   methods: {
     request,
-    post(url, data, config = undefined) {
-      return this.request({ ...config, method: 'POST', url, data });
+    post(url, data = undefined, config = undefined) {
+      const full = { ...config, method: 'POST', url };
+      if (data != null) full.data = data;
+      return this.request(full);
     },
     put(url, data, config = undefined) {
       return this.request({ ...config, method: 'PUT', url, data });
@@ -143,7 +153,7 @@ const mixin = {
     patch(url, data, config = undefined) {
       return this.request({ ...config, method: 'PATCH', url, data });
     },
-    delete: function del(url, config = undefined) {
+    delete(url, config = undefined) {
       return this.request({ ...config, method: 'DELETE', url });
     }
   }

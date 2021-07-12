@@ -10,8 +10,9 @@ including this file, may be copied, modified, propagated, or distributed
 except according to the terms contained in the LICENSE file.
 -->
 <template>
-  <modal id="project-enable-encryption" :state="state" backdrop
-    :hideable="!awaitingResponse" @hide="$emit(success ? 'success' : 'hide')">
+  <modal id="project-enable-encryption" :state="state"
+    :hideable="!awaitingResponse" backdrop
+    @hide="$emit(success ? 'success' : 'hide')">
     <template #title>{{ $t('title') }}</template>
     <template #body>
       <template v-if="step === 0">
@@ -46,6 +47,10 @@ except according to the terms contained in the LICENSE file.
             <div class="info-item">
               <span class="icon-close"></span>
               <p>{{ $t('steps[0].introduction[0][5]') }}</p>
+            </div>
+            <div class="info-item">
+              <span class="icon-close"></span>
+              <p>{{ $t('steps[0].introduction[0][6]') }}</p>
             </div>
           </div>
           <div class="info-block">
@@ -109,7 +114,8 @@ except according to the terms contained in the LICENSE file.
         </p>
         <p class="modal-introduction">
           <strong>{{ $t('common.success') }}</strong>
-          {{ $t('steps[2].introduction[0]') }}
+          <sentence-separator/>
+          <span>{{ $t('steps[2].introduction[0]') }}</span>
         </p>
         <div class="modal-actions">
           <button type="button" class="btn btn-primary"
@@ -126,7 +132,9 @@ except according to the terms contained in the LICENSE file.
 import DocLink from '../doc-link.vue';
 import FormGroup from '../form-group.vue';
 import Modal from '../modal.vue';
+import SentenceSeparator from '../sentence-separator.vue';
 import Spinner from '../spinner.vue';
+
 import request from '../../mixins/request';
 import { apiPaths } from '../../util/request';
 import { noop } from '../../util/util';
@@ -134,7 +142,7 @@ import { requestData } from '../../store/modules/request';
 
 export default {
   name: 'ProjectEnableEncryption',
-  components: { DocLink, FormGroup, Modal, Spinner },
+  components: { DocLink, FormGroup, Modal, SentenceSeparator, Spinner },
   mixins: [request()],
   props: {
     state: {
@@ -259,7 +267,8 @@ export default {
               "To use the automatic Central encryption process on these Forms, remove the {base64RsaPublicKey} configuration."
             ],
             "You will no longer be able to preview Submission data online.",
-            "You will no longer be able to connect to data over OData."
+            "You will no longer be able to connect to data over OData.",
+            "You will no longer be able to edit Submissions in your web browser."
           ],
           [
             "In addition, the following are true in this version of ODK Central:",
@@ -317,7 +326,8 @@ export default {
               "Chcete-li použít automatický proces centrálního šifrování na těchto formulářích, odeberte konfiguraci {base64RsaPublicKey}."
             ],
             "Již nebudete mít možnost zobrazit online náhled odeslaných údajů.",
-            "Již se nebudete moci připojit k datům přes OData."
+            "Již se nebudete moci připojit k datům přes OData.",
+            "Ve svém webovém prohlížeči již nebudete moci upravovat příspěvky."
           ],
           [
             "Kromě toho platí pro tuto verzi ODK Central následující:",
@@ -369,7 +379,8 @@ export default {
               "Um den automatischen Central-Verschlüsselungsprozess für diese Formulare zu nutzen, entfernen Sie die {base64RsaPublicKey} Konfiguration."
             ],
             "Sie werden zukünftig Übermittlungsdaten nicht mehr online als Vorschau sehen können.",
-            "Sie werden sich zukünftig nicht mehr über OData mit Daten verbinden können."
+            "Sie werden sich zukünftig nicht mehr über OData mit Daten verbinden können.",
+            "Sie können Übermittlungen nicht mehr in ihrem Webbrowser bearbeiten."
           ],
           [
             "Außerdem treffen die folgenden Punkte in dieser Version von ODK Central zu:",
@@ -421,7 +432,8 @@ export default {
               "Para utilizar el proceso automático de encriptación de Central en estos formularios, remueva la configuración {base64RsaPublicKey}."
             ],
             "Ya no podrá obtener una vista previa de los datos de la presentación en línea",
-            "Ya no podrá conectarse a los datos a través de Odata."
+            "Ya no podrá conectarse a los datos a través de Odata.",
+            "Ya no podrá editar envíos en su navegador web."
           ],
           [
             "Además, lo siguiente es cierto en esta versión de ODK Central:",
@@ -473,7 +485,8 @@ export default {
               "Pour utiliser le chiffrement automatique de Central pour ce formulaire, supprimez la configuration {base64RsaPublicKey}."
             ],
             "Vous ne pourrez plus prévisualiser les données de soumission en ligne.",
-            "Vous ne pourrez plus vous connecter aux données via OData."
+            "Vous ne pourrez plus vous connecter aux données via OData.",
+            "Vous ne serez plus en mesure d'éditer les soumissions dans votre navigateur."
           ],
           [
             "En outre, ce qui suit est vrai dans cette version d'ODK Central :",
@@ -516,17 +529,7 @@ export default {
     "steps": [
       {
         "introduction": [
-          [
-            "Apabila Anda mengizinkan enkripsi, hal-hal berikut akan terjadi:",
-            "Kiriman data yang sudah difinalisasi akan dienkripsi di perangkat seluler.",
-            "Kiriman data lain akan dienkripsi di server Central.",
-            [
-              "Formulir yang dikonfigurasi dengan kunci {submission} manual akan tetap menggunakan kunci-kunci tersebut dan harus didekripsi secara manual.",
-              "Untuk menggunakan proses enkripsi otomatis Central pada formulir ini, hapus konfigurasi {base64RsaPublicKey}."
-            ],
-            "Anda tidak akan bisa melihat pratinjau kiriman data secara online.",
-            "Anda tidak akan bisa menghubungkan data lewat OData."
-          ],
+          [],
           [
             "Sebagai tambahan, berikut adalah yang benar ada pada versi ODK Central ini:",
             [
@@ -561,6 +564,59 @@ export default {
     ],
     "field": {
       "hint": "Petunjuk frasa sandi (opsional)"
+    }
+  },
+  "ja": {
+    "title": "暗号化を有効にする",
+    "steps": [
+      {
+        "introduction": [
+          [
+            "暗号化を有効にすると、次のようになります。",
+            "確定済フォームは、モバイル端末の内部で暗号化されます。",
+            "提出済フォームはCentralサーバーで暗号化されます。",
+            [
+              "手動で{submission}キーを設定したフォームでは、そのキーが引き続き使用されるため、手動で復号化する必要があります。",
+              "これらのフォームでCentralの自動暗号化処理を使用するには、{base64RsaPublicKey}の設定を削除して下さい。"
+            ],
+            "オンラインで提出済フォームのデータをプレビューできなくなります。",
+            "OData経由でデータに接続できなくなります。",
+            "提出されたデータをWebブラウザで編集できなくなります。"
+          ],
+          [
+            "また、このバージョンのODK Centralでは以下のようになっています。",
+            [
+              "既存の提出されたフォームは暗号化されずに残ります。",
+              "今後のバージョンでは、既存のデータを暗号化するオプションが追加される予定です。"
+            ],
+            [
+              "一度有効にされた暗号化を無効にすることはできません。",
+              "今後のバージョンでは、暗号化を無効にするとデータが復号化されます。これは現時点で暗号化を有効にしていても同様です。"
+            ]
+          ],
+          {
+            "full": "暗号化についての詳細は{here}にあります。この内容でよろしければ、「次へ」をクリックして次に進みます。",
+            "here": "こちら"
+          }
+        ]
+      },
+      {
+        "introduction": [
+          "まず、あなたはパスフレーズを設定する必要があります。このパスフレーズは、あなたの提出済フォームを復号する際に求められます。あなたのプライバシーを保護するため、サーバーはパスフレーズを記録しません。設定されたパスフレーズを知っている者のみがあなたの提出済フォームデータを復号できます。",
+          {
+            "full": "パスフレーズの長さや文字に関して、制限はありません。もしパスフレーズを忘れた場合、パスフレーズまたはデータの復元方法はあり{no}。",
+            "no": "ません"
+          }
+        ]
+      },
+      {
+        "introduction": [
+          "このプロジェクトでは、暗号化が設定されています。モバイル端末で暗号化を行うためには、最新のフォームを取得または再取得する必要があります。"
+        ]
+      }
+    ],
+    "field": {
+      "hint": "パスフレーズのヒント（任意）"
     }
   }
 }

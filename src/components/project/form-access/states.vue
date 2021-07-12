@@ -134,7 +134,7 @@ export default {
       },
       {
         "full": "{closing} Formulare akzeptieren neue Übermittlungen, aber können {not} auf mobile Geräte heruntergeladen werden.",
-        "closing": "Wird geschlossen",
+        "closing": "Schließen",
         "not": "nicht"
       },
       {
@@ -205,6 +205,27 @@ export default {
         "closed": "Ditutup",
         "not1": "tidak",
         "not2": "tidak"
+      }
+    ]
+  },
+  "ja": {
+    "title": "フォームの状態",
+    "introduction": [
+      "フォームの状態では、各フォームのライフサイクルにおける状態を制御します。例外もありますが、通常、フォームは「公開」から始まり、「クロージング状態」を経て、不要になったら「終了」となります。",
+      {
+        "full": "{open}のフォームはモバイル端末にダウンロードでき、新規のフォームの提出も受け付けます。",
+        "open": "公開中"
+      },
+      {
+        "full": "{closing}のフォームは新規のフォームの提出を受け付けますが、モバイル端末にダウンロードはでき{not}。",
+        "closing": "クロージング状態",
+        "not": "ません"
+      },
+      {
+        "full": "{closed}したフォームはモバイル端末にダウンロードでき{not1}。また新規のフォームの提出も受け付け{not2}。",
+        "closed": "終了",
+        "not1": "ません",
+        "not2": "ません"
       }
     ]
   }

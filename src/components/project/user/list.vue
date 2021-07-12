@@ -485,6 +485,42 @@ export default {
       "assignRole": "Berhasil! \"{displayName}\" telah diberikan Peran sebagai \"{roleName}\" dalam Proyek ini.",
       "unassignRole": "Berhasil! \"{displayName}\" telah dihapus dari Proyek ini."
     }
+  },
+  "ja": {
+    "heading": [
+      "サーバー管理者は、自動的に全てのプロジェクトの管理者となります。その他のユーザーは、このプロジェクトに限定した役割を持つことができます。",
+      {
+        "full": "{projectManagers}は、このプロジェクトに関連するあらゆる管理作業を行うことができ、Webブラウザでフォームを入力できます。",
+        "projectManagers": "プロジェクト・マネージャー"
+      },
+      {
+        "full": "{projectViewers}は、このプロジェクトの全てのフォームにアクセスし、ダウンロードできますが、設定やデータの変更はできません。",
+        "projectViewers": "プロジェクト・閲覧者"
+      },
+      {
+        "full": "{dataCollectors}は、Webブラウザでフォームを入力できますが、データや設定を閲覧・変更はできません。",
+        "dataCollectors": "データ収集者"
+      }
+    ],
+    "action": {
+      "clearSearch": "検索条件の解除"
+    },
+    "field": {
+      "q": {
+        "canList": "ユーザーの検索",
+        "cannotList": "正確なユーザーのメールアドレスを入力する。"
+      }
+    },
+    "header": {
+      "user": "ユーザー",
+      "projectRole": "プロジェクトでの役割"
+    },
+    "emptyTable": "このプロジェクトに割り当てられたユーザーはまだいません。ユーザーを追加するには、上の検索ボックスでユーザーを検索してください。",
+    "alert": {
+      "unassignWithoutReassign": "問題が発生しました 。\"{displayName}\"はプロジェクトから除外されました。",
+      "assignRole": "成功です！\"{displayName}\"には、このプロジェクトで\"{roleName}\"の役割が割当てられました。",
+      "unassignRole": "成功です！\"{displayName}\"はこのプロジェクトから除外されました。"
+    }
   }
 }
 </i18n>

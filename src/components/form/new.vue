@@ -26,8 +26,10 @@ definition for an existing form -->
           <li v-for="warning of warnings">{{ warning.trim() }}</li>
         </ul>
         <p>
-          {{ $t('warningsText[1]') }}
-          {{ formDraft == null ? $t('warningsText[2].create') : $t('warningsText[2].update') }}
+          <span>{{ $t('warningsText[1]') }}</span>
+          <sentence-separator/>
+          <template v-if="formDraft == null">{{ $t('warningsText[2].create') }}</template>
+          <template v-else>{{ $t('warningsText[2].update') }}</template>
         </p>
         <p>
           <button type="button" class="btn btn-primary"
@@ -38,7 +40,9 @@ definition for an existing form -->
       </div>
       <div class="modal-introduction">
         <p>
-          {{ formDraft == null ? $t('introduction[0].create') : $t('introduction[0].update') }}
+          <template v-if="formDraft == null">{{ $t('introduction[0].create') }}</template>
+          <template v-else>{{ $t('introduction[0].update') }}</template>
+          <sentence-separator/>
           <i18n :tag="false" path="introduction[1].full">
             <template #tools>
               <doc-link to="form-tools/">{{ $t('introduction[1].tools') }}</doc-link>
@@ -80,7 +84,9 @@ definition for an existing form -->
 import DocLink from '../doc-link.vue';
 import Form from '../../presenters/form';
 import Modal from '../modal.vue';
+import SentenceSeparator from '../sentence-separator.vue';
 import Spinner from '../spinner.vue';
+
 import dropZone from '../../mixins/drop-zone';
 import request from '../../mixins/request';
 import { apiPaths, isProblem } from '../../util/request';
@@ -88,7 +94,7 @@ import { requestData } from '../../store/modules/request';
 
 export default {
   name: 'FormNew',
-  components: { DocLink, Modal, Spinner },
+  components: { DocLink, Modal, SentenceSeparator, Spinner },
   mixins: [dropZone(), request()],
   props: {
     state: {
@@ -122,10 +128,9 @@ export default {
     // but that didn't work in Edge.)
     contentType() {
       const { name } = this.file;
-      if (name.length >= 5 && name.slice(-5) === '.xlsx')
+      if (name.endsWith('.xlsx'))
         return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-      if (name.length >= 4 && name.slice(-4) === '.xls')
-        return 'application/vnd.ms-excel';
+      if (name.endsWith('.xls')) return 'application/vnd.ms-excel';
       return 'application/xml';
     }
   },
@@ -165,8 +170,10 @@ export default {
 
       const query = ignoreWarnings ? { ignoreWarnings } : null;
       const headers = { 'Content-Type': this.contentType };
-      if (this.contentType !== 'application/xml')
-        headers['X-XlsForm-FormId-Fallback'] = this.file.name.replace(/\.xlsx?$/, '');
+      if (this.contentType !== 'application/xml') {
+        const fallback = this.file.name.replace(/\.xlsx?$/, '');
+        headers['X-XlsForm-FormId-Fallback'] = encodeURIComponent(fallback);
+      }
       const { currentRoute } = this.$store.state.router;
       this.request({
         method: 'POST',
@@ -430,7 +437,7 @@ $drop-zone-vpadding: 15px;
   },
   "fr": {
     "title": {
-      "create": "Créer un formualire",
+      "create": "Créer un formulaire",
       "update": "Téléverser une nouvelle définition de formulaire"
     },
     "introduction": [
@@ -507,6 +514,47 @@ $drop-zone-vpadding: 15px;
       {
         "create": "Apabila Anda yakin masalah ini dapat diabaikan, klik tombol untuk melanjutkan buat formulir:",
         "update": "Apabila Anda yakin masalah ini dapat diabaikan, klik tombol untuk melanjutkan pembaruan draf:"
+      }
+    ]
+  },
+  "ja": {
+    "title": {
+      "create": "フォームの作成",
+      "update": "新規の定義フォームのアップロード"
+    },
+    "introduction": [
+      {
+        "create": "フォーム作成のため、XForms（XMLファイル）、またはXLSForm（Excelファイル）をアップロードして下さい。",
+        "update": "下書きの更新のため、XForms（XMLファイル）、またはXLSForm（Excelファイル）をアップロードして下さい。"
+      },
+      {
+        "full": "もしまだフォームをお持ちでない場合、フォームデザインを支援する{tools}。",
+        "tools": "ツールを利用できます"
+      },
+      "メディアファイルはフォームを作成後、次のページでアップロードできます。"
+    ],
+    "dropZone": {
+      "full": "アップロードするには、ここにファイルをドロップする、または、こちらからファイルを{chooseOne}",
+      "chooseOne": "１つ選択"
+    },
+    "action": {
+      "upload": "アップロード",
+      "uploadAnyway": "ひとまず、アップロード"
+    },
+    "alert": {
+      "fileRequired": "ファイルを選択"
+    },
+    "problem": {
+      "400_8": "アップロードされた定義フォームは、このフォームのものとは異なるようです。formIdが間違っています（\"{expected}\"であるべきですが、\"{actual}\"となっています）。",
+      "400_15": "XLSFormを変換できませんでした：{error}",
+      "409_3": "このプロジェクトには、フォームID\"{xmlFormId}\"のフォームがすでに存在しています。"
+    },
+    "warningsText": [
+      "このXLSFormファイルは利用できますが、次の問題が起こる可能性があります（変換時の警告）：",
+      "問題を修正して再度試して下さい。",
+      {
+        "create": "これらの問題が無視できると判断した場合は、以下のボタンをクリックしてフォームを作成して下さい。",
+        "update": "これら問題が無視できると判断した場合、ボタンをクリックして下書きを更新して下さい。"
       }
     ]
   }

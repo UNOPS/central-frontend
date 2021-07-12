@@ -30,13 +30,15 @@ const defaults = {
     .sort((fieldKey1, fieldKey2) =>
       fieldKey1.displayName.localeCompare(fieldKey2.displayName))
     .map(testData.toActor),
+  submission: testData.submissionOData,
+  audits: () => testData.extendedAudits.sorted(),
+  comments: () => testData.extendedComments.sorted(),
   publicLinks: () => testData.standardPublicLinks.sorted(),
   fieldKeys: () => testData.extendedFieldKeys.sorted(),
 
   backupsConfig: () => (testData.standardBackupsConfigs.size !== 0
     ? testData.standardBackupsConfigs.last()
-    : { problem: 404.1 }),
-  audits: () => testData.extendedAudits.sorted()
+    : { problem: 404.1 })
 };
 
 // Maps each request key to its corresponding callback. Returns a Map so that
@@ -52,9 +54,10 @@ const mapKeys = (keys, componentDefaults = undefined) => keys.reduce(
 );
 
 const mapsByComponent = {
-  AccountEdit: mapKeys(['user']),
   AccountLogin: new Map(),
+  AccountResetPassword: new Map(),
   AccountClaim: new Map(),
+
   ProjectList: mapKeys(['projects', 'users']),
   ProjectShow: mapKeys(['project']),
   ProjectOverview: mapKeys(['forms']),
@@ -76,14 +79,21 @@ const mapsByComponent = {
   FormDraftStatus: mapKeys(['formVersions']),
   FormAttachmentList: new Map(),
   FormDraftTesting: mapKeys(['keys', 'fields', 'odataChunk']),
+  SubmissionShow: mapKeys(['project', 'submission', 'audits', 'comments']),
+
   UserHome: new Map(),
   UserList: mapKeys(['users', 'actors']),
   UserEdit: mapKeys(['user']),
+  AccountEdit: mapKeys(['user']),
+
   SystemHome: new Map(),
   BackupList: mapKeys(['backupsConfig', 'audits'], {
     audits: () => testData.standardAudits.sorted()
   }),
   AuditList: mapKeys(['audits']),
+
+  Download: new Map(),
+
   NotFound: new Map()
 };
 

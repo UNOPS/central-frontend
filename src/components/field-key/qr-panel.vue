@@ -32,9 +32,10 @@ except according to the terms contained in the LICENSE file.
             <strong>{{ $t('body[0].legacy.legacyCode') }}</strong>
           </template>
         </i18n>
-
-        {{ managed ? $t('body[1].managed', fieldKey) : $t('body[1].legacy') }}
-
+        <sentence-separator/>
+        <template v-if="managed">{{ $t('body[1].managed', fieldKey) }}</template>
+        <template v-else>{{ $t('body[1].legacy') }}</template>
+        <sentence-separator/>
         <i18n v-if="managed" :tag="false" path="body[2].managed.full">
           <template #switchToLegacy>
             <i18n tag="a" path="body[2].managed.switchToLegacy"
@@ -57,7 +58,8 @@ except according to the terms contained in the LICENSE file.
         </i18n>
       </p>
       <p>
-        {{ $t('body[3]', fieldKey) }}
+        <span>{{ $t('body[3]', fieldKey) }}</span>
+        <sentence-separator/>
         <doc-link to="collect-import-export/">{{ $t('moreInfo.learnMore') }}</doc-link>
       </p>
     </div>
@@ -67,29 +69,35 @@ except according to the terms contained in the LICENSE file.
 <script>
 import CollectQr from '../collect-qr.vue';
 import DocLink from '../doc-link.vue';
+import SentenceSeparator from '../sentence-separator.vue';
 
 import FieldKey from '../../presenters/field-key';
 import { apiPaths } from '../../util/request';
+import { requestData } from '../../store/modules/request';
 
 export default {
   name: 'FieldKeyQrPanel',
-  components: { CollectQr, DocLink },
+  components: { CollectQr, DocLink, SentenceSeparator },
   props: {
-    fieldKey: FieldKey, // eslint-disable-line vue/require-default-prop
-    managed: {
-      type: Boolean,
-      default: false
-    }
+    fieldKey: FieldKey,
+    managed: Boolean
   },
   computed: {
+    ...requestData(['project']),
     settings() {
-      const { token, projectId } = this.fieldKey;
+      const url = apiPaths.serverUrlForFieldKey(
+        this.fieldKey.token,
+        this.project.id
+      );
       const settings = {
-        server_url: apiPaths.serverUrlForFieldKey(token, projectId)
+        general: { server_url: `${window.location.origin}${url}` },
+        project: { name: this.project.name },
+        // Collect requires the settings to have an `admin` property.
+        admin: {}
       };
       if (this.managed) {
-        settings.form_update_mode = 'match_exactly';
-        settings.autosend = 'wifi_and_cellular';
+        settings.general.form_update_mode = 'match_exactly';
+        settings.general.autosend = 'wifi_and_cellular';
       }
       return settings;
     }
@@ -212,8 +220,8 @@ export default {
         }
       },
       {
-        "managed": "Collect bude přesně odpovídat dostupným formulářům na “{displayName}“, včetně automatického použití aktualizací. Uživatelé nebudou muset ručně získávat prázdné formuláře.",
-        "legacy": "Uživatelé budou muset ručně získat prázdné formuláře v zařízení a určit, které formuláře se mají aktualizovat."
+        "managed": "Collect bude přesně odpovídat dostupným formulářům na „{displayName}“, včetně automatického použití aktualizací. Uživatelé nebudou muset ručně získávat prázdné formuláře. Dokončené formuláře budou navíc automaticky odeslány, jakmile bude nalezeno spojení.",
+        "legacy": "Uživatelé budou muset ručně získat prázdné formuláře v zařízení a určit, které formuláře se mají aktualizovat. Budou také muset ručně odeslat konečné formuláře."
       },
       {
         "managed": {
@@ -228,6 +236,41 @@ export default {
         }
       },
       "Naskenováním tohoto QR kódu nakonfigurujete zařízení s účtem “{displayName}“."
+    ]
+  },
+  "de": {
+    "title": {
+      "managed": "Client Configuration Code",
+      "legacy": "Legacy Client Configuration Code"
+    },
+    "body": [
+      {
+        "managed": {
+          "full": "Das ist ein {managedCode}.",
+          "managedCode": "Managed QR-Code"
+        },
+        "legacy": {
+          "full": "Das ist ein {legacyCode}.",
+          "legacyCode": "Legacy QR-Code"
+        }
+      },
+      {
+        "managed": "Collect wird die für \"{displayName}\" verfügbaren Formulare genau abgleichen und automatisch Updates anwenden. Benutzer müssen Leerformulare nicht manuell herunterladen. Außerdem werden abgeschlossene Formulare automatisch übermittelt sobald eine Verbindung vorhanden ist.",
+        "legacy": "Benutzer müssen manuell auf dem Gerät Leerformulare herunterladen und Formulare zum Updaten auswählen. Sie müssen außerdem manuell vollständige Formulare hochladen."
+      },
+      {
+        "managed": {
+          "full": "Für das alte Verhalten {switchToLegacy}.",
+          "switchToLegacy": "auf {legacyCode} umschalten",
+          "legacyCode": "Legacy QR-Code"
+        },
+        "legacy": {
+          "full": "Für einen kontrollierteren und idiotensicheren Prozess {switchToManaged}.",
+          "switchToManaged": "auf {managedCode} umschalten",
+          "managedCode": "Managed QR-Code"
+        }
+      },
+      "Scannen Sie diesen QR-Code, um ein Gerät mit dem Konto \"{displayName}\" zu konfigurieren."
     ]
   },
   "es": {
@@ -247,8 +290,8 @@ export default {
         }
       },
       {
-        "managed": "Collect coincidirá exactamente con los formularios disponibles para \"{displayName}\", incluida la aplicación automática de actualizaciones. Los usuarios no necesitarán obtener formularios en blanco manualmente.",
-        "legacy": "Los usuarios deberán obtener manualmente formularios en blanco en el dispositivo y determinar qué formularios actualizar."
+        "managed": "Collect coincidirá exactamente con los formularios disponibles para {displayName}, incluida la aplicación automática de actualizaciones. Los usuarios no necesitarán obtener formularios en blanco manualmente. Además, los formularios finalizados se enviarán automáticamente tan pronto como se encuentre una conexión.",
+        "legacy": "Los usuarios deberán obtener manualmente formularios en blanco en el dispositivo y determinar qué formularios actualizar. También necesitarán enviar formularios finalizados manualmente"
       },
       {
         "managed": {
@@ -263,6 +306,108 @@ export default {
         }
       },
       "Escanee este código QR para configurar un dispositivo con la cuenta \"{displayName}\""
+    ]
+  },
+  "fr": {
+    "title": {
+      "managed": "Code de configuration du client.",
+      "legacy": "Ancien code de configuration de client"
+    },
+    "body": [
+      {
+        "managed": {
+          "full": "Ceci est un {managedCode}.",
+          "managedCode": "QR Code administré"
+        },
+        "legacy": {
+          "full": "Ceci est un {legacyCode}.",
+          "legacyCode": "Ancien QR Code"
+        }
+      },
+      {
+        "managed": "Collect reflétera exactement les formulaires disponibles sur “{displayName}” incluant leurs mises à jour automatiques. Les utilisateurs n'auront plus à télécharger les formulaires vierges. En outre, les formulaires finalisés seront envoyés automatiquement, dés qu'une connexion sera trouvée.",
+        "legacy": "Les utilisateurs devront manuellement télécharger les formulaires vierges sur le téléphone et choisir quels formulaires mettre à jour. Ils devront aussi envoyer les formulaires finalisés manuellement."
+      },
+      {
+        "managed": {
+          "full": "Pour l'ancien comportement, {switchToLegacy}.",
+          "switchToLegacy": "Changez pour un {legacyCode}",
+          "legacyCode": "ancien QR Code"
+        },
+        "legacy": {
+          "full": "Pour un processus plus contrôlé et infaillible, {switchToManaged}.",
+          "switchToManaged": "Changer pour un {managedCode}",
+          "managedCode": "QR Code administré"
+        }
+      },
+      "Scannez ce QR Code pour configurer un téléphone avec le compte “{displayName}”."
+    ]
+  },
+  "id": {
+    "title": {
+      "managed": "Kode Konfigurrasi Klien",
+      "legacy": "Kode Konfigurasi Klien Versi Lama"
+    },
+    "body": [
+      {
+        "managed": {
+          "full": "Ini adalah {managedCode}.",
+          "managedCode": "Kode QR yang dikelola"
+        },
+        "legacy": {
+          "full": "Ini adalah {legacyCode}.",
+          "legacyCode": "kode QR Versi Lama"
+        }
+      },
+      {},
+      {
+        "managed": {
+          "full": "Untuk cara lama, {switchToLegacy}.",
+          "switchToLegacy": "beralih ke {legacyCode}",
+          "legacyCode": "Kode QR versi Lama"
+        },
+        "legacy": {
+          "full": "Untuk proses yang lebih terkontrol dan terpercaya, {switchToManaged}.",
+          "switchToManaged": "beralih ke {managedCode}",
+          "managedCode": "Kode QR yang Dikelola"
+        }
+      },
+      "Pindai kode QR ini untuk mengonfigurasi perangkat dengan akun tersebut “{displayName}”."
+    ]
+  },
+  "ja": {
+    "title": {
+      "managed": "クライアントの設定コード",
+      "legacy": "従来のクライアント設定コード"
+    },
+    "body": [
+      {
+        "managed": {
+          "full": "これは{managedCode}です。",
+          "managedCode": "管理型のQRコード"
+        },
+        "legacy": {
+          "full": "これは{legacyCode}です。",
+          "legacyCode": "従来型のQRコード"
+        }
+      },
+      {
+        "managed": "ODK Collectは、「{displayName}」で利用可能なフォームと完全に一致し、アップデートも自動的に適用されます。ユーザーが手動で空フォームを取得する必要はありません。さらに、インターネット接続が見つかった時点で、確定済のフォームが自動的に送信されます。",
+        "legacy": "ユーザーは、手動で端末に空フォームを取得し、更新するフォームを決定する必要があります。また、確定済フォームを手動で提出する必要があります。"
+      },
+      {
+        "managed": {
+          "full": "従来通りの操作のためには、{switchToLegacy}",
+          "switchToLegacy": "{legacyCode}に切り替える。",
+          "legacyCode": "従来型のQRコード"
+        },
+        "legacy": {
+          "full": "より管理された確実な処理のために、{switchToManaged}",
+          "switchToManaged": "{managedCode}に切り替える。",
+          "managedCode": "管理型のQRコード"
+        }
+      },
+      "このQRコードをスキャンして、アカウント名\"{displayName}\"の端末を設定する。"
     ]
   }
 }

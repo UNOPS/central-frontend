@@ -32,7 +32,7 @@ except according to the terms contained in the LICENSE file.
             <strong>{{ $t('neverRun[2].terminate') }}</strong>
           </template>
         </i18n>
-        &nbsp;
+        <sentence-separator/>
         <i18n :tag="false" path="getHelp.full">
           <template #forum>
             <a href="https://forum.getodk.org/" target="_blank">{{ $t('getHelp.forum') }}</a>
@@ -53,7 +53,7 @@ except according to the terms contained in the LICENSE file.
             <strong>{{ $t('somethingWentWrong[2].terminate') }}</strong>
           </template>
         </i18n>
-        &nbsp;
+        <sentence-separator/>
         <i18n :tag="false" path="getHelp.full">
           <template #forum>
             <a href="https://forum.getodk.org/" target="_blank">{{ $t('getHelp.forum') }}</a>
@@ -98,6 +98,7 @@ import { DateTime } from 'luxon';
 import { mapGetters } from 'vuex';
 
 import DateTimeComponent from '../date-time.vue';
+import SentenceSeparator from '../sentence-separator.vue';
 import Spinner from '../spinner.vue';
 
 import { ago } from '../../util/date-time';
@@ -105,7 +106,7 @@ import { requestData } from '../../store/modules/request';
 
 export default {
   name: 'BackupStatus',
-  components: { DateTime: DateTimeComponent, Spinner },
+  components: { DateTime: DateTimeComponent, SentenceSeparator, Spinner },
   data() {
     return {
       downloading: false
@@ -277,7 +278,11 @@ export default {
     ],
     "action": {
       "setUp": "Nastavit nyní",
+      "download": "Stáhnout zálohu hned",
       "terminate": "Ukončit"
+    },
+    "alert": {
+      "download": "Záloha nyní běží a bude šifrována a stažena do vašeho počítače. Může to chvíli trvat. Jakmile začne stahování, můžete tuto stránku opustit."
     }
   },
   "de": {
@@ -319,7 +324,11 @@ export default {
     ],
     "action": {
       "setUp": "Jetzt konfigurieren",
+      "download": "Backup jetzt herunterladen",
       "terminate": "Beenden"
+    },
+    "alert": {
+      "download": "Das Backup läuft jetzt und wird verschlüsselt und auf Ihren Computer geladen. Das wird eine Weile dauern. Sobald der Download begonnen hat, können Sie diese Seite verlassen."
     }
   },
   "es": {
@@ -361,7 +370,11 @@ export default {
     ],
     "action": {
       "setUp": "Configurar ahora",
+      "download": "Descargar copia de seguridad ahora",
       "terminate": "Terminar"
+    },
+    "alert": {
+      "download": "La copia de seguridad se está ejecutando ahora y se cifrará y descargará en su computadora. Esto puede tardar un rato. Una vez que comience la descarga, puede salir de esta página"
     }
   },
   "fr": {
@@ -403,7 +416,11 @@ export default {
     ],
     "action": {
       "setUp": "Paramétrer maintenant",
+      "download": "Télécharger la sauvegarde maintenant",
       "terminate": "Terminer"
+    },
+    "alert": {
+      "download": "La sauvegarde est en cours, elle sera chiffrée et téléchargée sur votre ordinateur. Cela peut prendre un peu de temps. Une fois démarré le téléchargement, vous pourrez quitter cette page."
     }
   },
   "id": {
@@ -445,7 +462,57 @@ export default {
     ],
     "action": {
       "setUp": "Atur sekarang",
+      "download": "Unduh cadangan sekarang",
       "terminate": "Putuskan"
+    },
+    "alert": {
+      "download": "Pencadangan sedang berlangsung dan akan dienkripsi selanjutnya diunduh ke komputermu. Perlu waktu beberapa saat. Saat pengunduhan dimulai, kamu bisa meninggalkan laman ini."
+    }
+  },
+  "ja": {
+    "getHelp": {
+      "full": "問題がある場合、{forum}を確認して下さい。",
+      "forum": "コミュニティーフォーラム"
+    },
+    "notConfigured": [
+      "バックアップは設定されていません。",
+      "データサーバは自動バックアップの設定をされていません。",
+      {
+        "full": "他の方法でデータをバックアップしている場合を除き、今すぐバックアップすることを{recommended}。確信が持てない場合は、安全のために設定することが望ましいです。",
+        "recommended": "強く推奨します"
+      },
+      "自動バックアップは本システム経由で毎日行われます。全てのデータは、あなたが設定したパスワードで暗号化されバックアップされ、あなたによって復号が可能です。"
+    ],
+    "neverRun": [
+      "設定されたバックアップは未実行です。",
+      "ここ数日の間にバックアップの設定をしたのならば、これは正常です。そうでない場合は、何か問題が起きています。",
+      {
+        "full": "その場合、最も可能性の高い対処法は、Googleとの連携を{terminate}し、再設定することです。もしくは、サービスを再起動することです。",
+        "terminate": "切断"
+      }
+    ],
+    "somethingWentWrong": [
+      "何か問題があります！",
+      {
+        "full": "最終のバックアップは、{moreThanThreeDaysAgo}に正常に完了しています。",
+        "moreThanThreeDaysAgo": "3日以上前"
+      },
+      {
+        "full": "最も可能性の高い対処法は、Googleとの連携を{terminate}して再度設定することです。または、サービスを再起動することです。",
+        "terminate": "切断"
+      }
+    ],
+    "success": [
+      "バックアップしています。",
+      "{dateTime}に最新のバックアップは成功しています。"
+    ],
+    "action": {
+      "setUp": "今すぐ設定",
+      "download": "今すぐバックアップをダウンロード",
+      "terminate": "停止"
+    },
+    "alert": {
+      "download": "現在、バックアップが実行中です。バックアップデータは暗号化され、あなたのコンピュータにダウンロードされます。処理にしばらく時間がかかります。ダウンロードが始まると、このページを閉じても構いません。"
     }
   }
 }

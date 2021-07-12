@@ -22,6 +22,7 @@ export const waitUntil = (f) => new Promise(resolve => {
   waiter();
 });
 
+// Deprecated. Use sinon.useFakeTimers() instead.
 export const fakeSetTimeout = () => {
   const callbacks = new Map();
   let currentId = 0;
@@ -44,17 +45,4 @@ export const fakeSetTimeout = () => {
       }
     }
   };
-};
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// AVORIAZ
-
-// Returns the element for an object that may be an avoriaz wrapper.
-export const unwrapElement = (elementOrWrapper) => {
-  if (elementOrWrapper.isVueComponent === true) return elementOrWrapper.vm.$el;
-  return elementOrWrapper.element != null
-    ? elementOrWrapper.element
-    : elementOrWrapper;
 };

@@ -259,7 +259,7 @@ export default {
     "warnings": {
       "attachments": {
         "full": "Vous n'avez pas fourni tous les {mediaFiles} requis par votre formulaire. Vous pouvez ignorer cette notification, mais vous devrez créer une nouvelle ébauche pour ajouter ces fichiers plus tard.",
-        "mediaFiles": "Fichiers médias"
+        "mediaFiles": "fichiers média"
       },
       "testing": {
         "full": "Vous n'avez pas encore {tested} sur un appareil mobile et téléchargé une soumission de test. Vous n'êtes pas obligé de le faire, mais c'est fortement recommandé.",
@@ -300,6 +300,30 @@ export default {
     },
     "problem": {
       "409_6": "Nama yang Anda pilih sama dengan nama dari versi lama formulir ini. Mohon ubah nama dan coba lagi."
+    }
+  },
+  "ja": {
+    "title": "下書きの公開",
+    "warnings": {
+      "attachments": {
+        "full": "フォームに必要な{mediaFiles}がすべて用意されていません。これを無視しても構いませんが、後でそれらのファイルをアップロードするために、新しい下書きバージョンを作成する必要があります。",
+        "mediaFiles": "メディアファイル"
+      },
+      "testing": {
+        "full": "まだモバイル端末で{tested}し、フォームのテスト提出がされていません。これは必須ではありませんが、強く推奨します。",
+        "tested": "このフォームをテスト"
+      }
+    },
+    "introduction": [
+      "この下書きを、公開バージョンにしようとしています。これにより、定義フォームやそれに関連するメディアファイルに加えた変更が確定します。",
+      "既存の提出済フォームは影響を受けませんが、全ての下書きへのテスト提出済フォームは削除されます。",
+      "フォームの各バージョンには、それぞれ独自のバージョン名が必要です。現在、あなたの下書きフォームには、以前に公開されたバージョンと同じ名前が付けられています。新しいバージョン名を設定するには、希望する名前を付けた定義フォームをアップロードするか、もしくは、以下に新しい名前を入力すれば、サーバーのほうで変更を行います。"
+    ],
+    "field": {
+      "version": "バージョン"
+    },
+    "problem": {
+      "409_6": "指定されたバージョン名は、このフォームの過去のバージョンと競合しています。新しいものに変更して再度試して下さい。"
     }
   }
 }

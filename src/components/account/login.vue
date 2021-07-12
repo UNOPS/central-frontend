@@ -14,7 +14,7 @@ except according to the terms contained in the LICENSE file.
     <div class="col-xs-12 col-sm-offset-3 col-sm-6">
       <div class="panel panel-default panel-main">
         <div class="panel-heading">
-          <h1 class="panel-title">{{ $t('title') }}</h1>
+          <h1 class="panel-title">{{ $t('action.logIn') }}</h1>
         </div>
         <div class="panel-body">
           <form @submit.prevent="submit">
@@ -28,9 +28,11 @@ except according to the terms contained in the LICENSE file.
                 :disabled="disabled">
                 {{ $t('action.logIn') }} <spinner :state="disabled"/>
               </button>
-              <router-link to="/reset-password" tag="button" type="button"
-                class="btn btn-link" :disabled="disabled">
-                {{ $t('action.resetPassword') }}
+              <router-link v-slot="{ navigate }" to="/reset-password" custom>
+                <button type="button" class="btn btn-link" :disabled="disabled"
+                  @click="navigate">
+                  {{ $t('action.resetPassword') }}
+                </button>
               </router-link>
             </div>
           </form>
@@ -43,8 +45,11 @@ except according to the terms contained in the LICENSE file.
 <script>
 import FormGroup from '../form-group.vue';
 import Spinner from '../spinner.vue';
+
 import request from '../../mixins/request';
-import { enketoBasePath } from '../../util/util';
+import { enketoBasePath, noop } from '../../util/util';
+import { localStore } from '../../util/storage';
+import { logIn } from '../../util/session';
 
 export default {
   name: 'AccountLogin',
@@ -89,21 +94,22 @@ export default {
       return internal(url.pathname + url.search + url.hash);
     },
     submit() {
+      const sessionExpires = localStore.getItem('sessionExpires');
+      if (sessionExpires != null && parseInt(sessionExpires, 10) > Date.now()) {
+        this.$alert().info(this.$t('alert.alreadyLoggedIn'));
+        return;
+      }
+
       this.disabled = true;
       this.request({
         method: 'POST',
-        url: '/sessions',
+        url: '/v1/sessions',
         data: { email: this.email, password: this.password }
       })
-        .then(({ data }) => this.$store.dispatch('get', [{
-          key: 'currentUser',
-          url: '/users/current',
-          headers: { Authorization: `Bearer ${data.token}` },
-          extended: true,
-          success: () => {
-            this.$store.commit('setData', { key: 'session', value: data });
-          }
-        }]))
+        .then(({ data }) => {
+          this.$store.commit('setData', { key: 'session', value: data });
+          return logIn(this.$router, this.$store, true);
+        })
         .then(() => {
           this.navigateToNext(
             this.$route.query.next,
@@ -113,7 +119,7 @@ export default {
               // outside Frontend, the buttons might be re-enabled before the
               // external page is loaded.
               this.disabled = false;
-              this.$router.replace(location);
+              this.$router.replace(location).catch(noop);
             },
             (url) => {
               window.location.replace(url);
@@ -131,8 +137,9 @@ export default {
 <i18n lang="json5">
 {
   "en": {
-    // This is a title shown above a section of the page.
-    "title": "Log in",
+    "alert": {
+      "alreadyLoggedIn": "A user is already logged in. Please refresh the page to continue."
+    },
     "problem": {
       "401_2": "Incorrect email address and/or password."
     }
@@ -144,33 +151,48 @@ export default {
 <i18n>
 {
   "cs": {
-    "title": "Přihlásit se",
+    "alert": {
+      "alreadyLoggedIn": "Uživatel je již přihlášen. Chcete-li pokračovat, obnovte stránku."
+    },
     "problem": {
       "401_2": "Nesprávná e-mailová adresa nebo heslo."
     }
   },
   "de": {
-    "title": "Einloggen",
+    "alert": {
+      "alreadyLoggedIn": "Ein Benutzer ist bereits eingeloggt. Bitte die Seite aktualisieren um weiterzuarbeiten."
+    },
     "problem": {
       "401_2": "Falsche E-Mail-Adresse und/oder Passwort."
     }
   },
   "es": {
-    "title": "Ingresar",
+    "alert": {
+      "alreadyLoggedIn": "Un usuario ya ha iniciado sesión. Actualice la página para continuar."
+    },
     "problem": {
       "401_2": "Dirección de correo electrónico y/o contraseña incorrecta."
     }
   },
   "fr": {
-    "title": "Se connecter",
+    "alert": {
+      "alreadyLoggedIn": "Un utilisateur est déjà connecté. Merci de rafraîchir la page pour continuer."
+    },
     "problem": {
       "401_2": "Adresse de courriel et/ou mot de passe invalides."
     }
   },
   "id": {
-    "title": "Masuk",
     "problem": {
       "401_2": "Alamat email dan/atau kata sandi salah."
+    }
+  },
+  "ja": {
+    "alert": {
+      "alreadyLoggedIn": "すでにユーザーでログインされています。 続けるにはページを更新してください。"
+    },
+    "problem": {
+      "401_2": "メールアドレスとパスワードの一方、または両方が違います。"
     }
   }
 }

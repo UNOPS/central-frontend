@@ -11,19 +11,10 @@ except according to the terms contained in the LICENSE file.
 -->
 <template>
   <div id="form-head">
-    <div id="form-head-project-nav" class="row">
-      <div class="col-xs-12">
-        <div v-if="project !=null">
-          <span>
-            <router-link :to="projectPath()">
-              {{ project.nameWithArchived() }}</router-link>
-          </span>
-          <router-link :to="projectPath()">{{ $t('projectNav.action.back') }}</router-link>
-        </div>
-        <!-- The triangle below the project name -->
-        <div></div>
-      </div>
-    </div>
+    <page-back :to="projectPath()" link-title>
+      <template #title>{{ project != null ? project.nameWithArchived() : '' }}</template>
+      <template #back>{{ $t('projectNav.action.back') }}</template>
+    </page-back>
     <div id="form-head-form-nav" class="row">
       <div class="col-xs-12">
         <div class="row">
@@ -44,7 +35,7 @@ except according to the terms contained in the LICENSE file.
               <li v-if="rendersFormTabs" :class="formTabClass('')"
                 :title="formTabTitle" role="presentation">
                 <router-link :to="tabPath('')">
-                  {{ $t('formNav.tab.overview') }}
+                  {{ $t('common.tab.overview') }}
                 </router-link>
               </li>
               <!-- No v-if, because anyone who can navigate to the form should
@@ -52,7 +43,7 @@ except according to the terms contained in the LICENSE file.
               <li :class="formTabClass('versions')" :title="formTabTitle"
                 role="presentation">
                 <router-link :to="tabPath('versions')">
-                  {{ $t('formNav.tab.versions') }}
+                  {{ $t('formHead.tab.versions') }}
                 </router-link>
               </li>
               <li :class="formTabClass('submissions')" :title="formTabTitle"
@@ -64,13 +55,13 @@ except according to the terms contained in the LICENSE file.
               <li v-if="rendersFormTabs" :class="formTabClass('public-links')"
                 :title="formTabTitle" role="presentation">
                 <router-link :to="tabPath('public-links')">
-                  {{ $t('formNav.tab.publicLinks') }}
+                  {{ $t('formHead.tab.publicAccess') }}
                 </router-link>
               </li>
               <li v-if="rendersFormTabs" :class="formTabClass('settings')"
                 :title="formTabTitle" role="presentation">
                 <router-link :to="tabPath('settings')">
-                  {{ $t('formNav.tab.settings') }}
+                  {{ $t('common.tab.settings') }}
                 </router-link>
               </li>
             </ul>
@@ -87,13 +78,13 @@ except according to the terms contained in the LICENSE file.
               <li v-if="canRoute(tabPath('draft'))" :class="tabClass('draft')"
                 role="presentation">
                 <router-link :to="tabPath('draft')">
-                  {{ $t('draftNav.tab.status') }}
+                  {{ $t('formHead.draftNav.tab.status') }}
                 </router-link>
               </li>
               <li v-if="canRoute(tabPath('draft/attachments'))"
                 :class="tabClass('draft/attachments')" role="presentation">
                 <router-link :to="tabPath('draft/attachments')">
-                  {{ $t('draftNav.tab.attachments') }}
+                  {{ $t('formHead.draftNav.tab.attachments') }}
                   <template v-if="attachments != null">
                     <span v-show="missingAttachmentCount !== 0" class="badge">
                       {{ $n(missingAttachmentCount, 'default') }}
@@ -104,7 +95,7 @@ except according to the terms contained in the LICENSE file.
               <li v-if="canRoute(tabPath('draft/testing'))"
                 :class="tabClass('draft/testing')" role="presentation">
                 <router-link :to="tabPath('draft/testing')">
-                  {{ $t('draftNav.tab.testing') }}
+                  {{ $t('formHead.draftNav.tab.testing') }}
                 </router-link>
               </li>
             </ul>
@@ -118,6 +109,8 @@ except according to the terms contained in the LICENSE file.
 <script>
 import { mapGetters } from 'vuex';
 
+import PageBack from '../page/back.vue';
+
 import routes from '../../mixins/routes';
 import tab from '../../mixins/tab';
 import { requestData } from '../../store/modules/request';
@@ -126,6 +119,7 @@ const requestKeys = ['project', 'form', 'formDraft', 'attachments'];
 
 export default {
   name: 'FormHead',
+  components: { PageBack },
   mixins: [routes(), tab()],
   computed: {
     // The component does not assume that this data will exist when the
@@ -151,6 +145,15 @@ export default {
         (this.formDraft.isDefined() || this.project.permits('form.update'));
     }
   },
+  created() {
+    // If as the user navigates between the tabs, the scrollbar is visible for
+    // only some tabs, then the position of the tabs will shift as the user
+    // navigates. To prevent that, we always show the scrollbar.
+    document.body.classList.add('scroll');
+  },
+  beforeDestroy() {
+    document.body.classList.remove('scroll');
+  },
   methods: {
     formTabClass(path) {
       const htmlClass = this.tabClass(path);
@@ -163,61 +166,18 @@ export default {
 </script>
 
 <style lang="scss">
-@import '../../assets/scss/variables';
+@import '../../assets/scss/mixins';
 
 $draft-nav-padding: 23px;
 $tab-li-margin-top: 5px;
 
-body {
-  // If as the user navigates between the tabs, the scrollbar is visible for
-  // only some tabs, then the position of the tabs will shift as the user
-  // navigates. To prevent that, we always show the scrollbar.
-  overflow-y: scroll;
-}
-
-#form-head-project-nav, #form-head-form-nav {
-  background-color: $color-subpanel-background;
-}
-
-#form-head-project-nav > .col-xs-12 > div:first-child {
-  background-color: #ddd;
-  font-size: 18px;
-  margin: 0 -15px;
-  padding: 15px;
-
-  > span {
-    font-weight: bold;
-    margin-right: 10px;
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-  }
-
-  > a {
-    font-size: 12px;
-  }
-
-  + div {
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 12px solid #ddd;
-    height: 0;
-    margin-bottom: -10px;
-    width: 0;
-  }
-}
-
 #form-head-form-nav {
+  background-color: $color-subpanel-background;
   border-bottom: 1px solid $color-subpanel-border-strong;
 
   .h1 {
+    @include text-overflow-ellipsis;
     margin-bottom: -10px;
-
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .nav-tabs > li {
@@ -231,9 +191,7 @@ body {
   margin-top: $draft-nav-padding;
 
   > li.active > a {
-    &, &:hover, &:focus {
-      background-color: $color-subpanel-active;
-    }
+    &, &:hover, &:focus { background-color: $color-subpanel-active; }
   }
 }
 
@@ -265,9 +223,7 @@ body {
   }
 
   .nav-tabs > li.active > a {
-    &, &:hover, &:focus {
-      background-color: $color-page-background;
-    }
+    &, &:hover, &:focus { background-color: $color-page-background; }
   }
 }
 </style>
@@ -281,12 +237,6 @@ body {
       }
     },
     "formNav": {
-      "tab": {
-        "overview": "Overview",
-        "versions": "Versions",
-        "publicLinks": "Public Access",
-        "settings": "Settings"
-      },
       // Tooltip text that will be shown when hovering over tabs for Form Overview, Submissions, etc.
       "tabTitle": "These functions will become available once you publish your Draft Form"
     },
@@ -296,11 +246,6 @@ body {
       "action": {
         "create": "Create a new Draft"
       },
-      "tab": {
-        "status": "Status",
-        "attachments": "Media Files",
-        "testing": "Testing"
-      }
     }
   }
 }
@@ -316,23 +261,12 @@ body {
       }
     },
     "formNav": {
-      "tab": {
-        "overview": "Přehled",
-        "versions": "Verze",
-        "publicLinks": "Veřejný přístup",
-        "settings": "Nastavení"
-      },
       "tabTitle": "Tyto funkce budou k dispozici, jakmile zveřejníte svůj koncept formuláře"
     },
     "draftNav": {
       "title": "Koncept",
       "action": {
         "create": "Vytvořit nový koncept"
-      },
-      "tab": {
-        "status": "Stav",
-        "attachments": "Mediální soubory",
-        "testing": "Testování"
       }
     }
   },
@@ -343,23 +277,12 @@ body {
       }
     },
     "formNav": {
-      "tab": {
-        "overview": "Übersicht",
-        "versions": "Versionen",
-        "publicLinks": "Öffentlicher Zugriff",
-        "settings": "Einstellungen"
-      },
       "tabTitle": "Diese Funktionen stehen zur Verfügung, wenn Sie Ihren Entwurf veröffentlicht haben."
     },
     "draftNav": {
       "title": "Entwurf",
       "action": {
         "create": "Neuen Entwurf erstellen"
-      },
-      "tab": {
-        "status": "Status",
-        "attachments": "Mediendateien",
-        "testing": "Testen"
       }
     }
   },
@@ -370,23 +293,12 @@ body {
       }
     },
     "formNav": {
-      "tab": {
-        "overview": "Descripción general",
-        "versions": "Versiones",
-        "publicLinks": "Acceso público",
-        "settings": "Ajustes"
-      },
       "tabTitle": "Estas funciones estarán disponibles una vez que publique su borrador de formulario."
     },
     "draftNav": {
       "title": "Borrador",
       "action": {
         "create": "Crear un nuevo borrador"
-      },
-      "tab": {
-        "status": "Estado",
-        "attachments": "Archivos multimedia",
-        "testing": "Pruebas"
       }
     }
   },
@@ -397,23 +309,12 @@ body {
       }
     },
     "formNav": {
-      "tab": {
-        "overview": "Aperçu",
-        "versions": "Versions",
-        "publicLinks": "Accès public",
-        "settings": "Réglages"
-      },
       "tabTitle": "Ces fonctions seront disponibles quand vous publierez votre ébauche"
     },
     "draftNav": {
       "title": "Ébauche",
       "action": {
         "create": "Créer une nouvelle ébauche"
-      },
-      "tab": {
-        "status": "Status",
-        "attachments": "Fichiers médias",
-        "testing": "Test"
       }
     }
   },
@@ -424,23 +325,28 @@ body {
       }
     },
     "formNav": {
-      "tab": {
-        "overview": "Gambaran",
-        "versions": "Versi",
-        "publicLinks": "Akses Publik",
-        "settings": "Pengaturan"
-      },
       "tabTitle": "Fungsi ini akan tersedia setelah Anda menerbitkan draf formulir Anda"
     },
     "draftNav": {
       "title": "Draf",
       "action": {
         "create": "Buat draf baru"
-      },
-      "tab": {
-        "status": "Status",
-        "attachments": "File Media",
-        "testing": "Uji Coba"
+      }
+    }
+  },
+  "ja": {
+    "projectNav": {
+      "action": {
+        "back": "プロジェクトの概要に戻る"
+      }
+    },
+    "formNav": {
+      "tabTitle": "これらの機能は下書きフォームが公開された際に有効になります。"
+    },
+    "draftNav": {
+      "title": "下書き",
+      "action": {
+        "create": "新規下書きの作成"
       }
     }
   }

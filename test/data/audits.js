@@ -1,9 +1,27 @@
 import { comparator, omit } from 'ramda';
 
 import { dataStore, view } from './data-store';
+import { extendedForms } from './forms';
+import { extendedUsers } from './users';
 import { fakePastDate, isBefore } from '../util/date-time';
 import { standardBackupsConfigs } from './backups-configs';
 import { toActor } from './actors';
+
+const actionsWithDefaultActor = new Set([
+  'config.set',
+  'submission.create',
+  'submission.update',
+  'submission.update.version'
+]);
+const defaultActor = (action) =>
+  (actionsWithDefaultActor.has(action) ? extendedUsers.first() : null);
+
+const defaultActee = (action) => {
+  if (action === 'submission.create' || action === 'submission.update' ||
+    action === 'submission.update.version')
+    return extendedForms.last();
+  return null;
+};
 
 // An audit object does not have a createdAt property, but it does have a
 // loggedAt property, which is similar in some ways. dataStore() tracks the last
@@ -15,29 +33,26 @@ const auditsWithCreatedAt = dataStore({
     inPast,
     lastCreatedAt,
 
-    // I'm not going to try to mock these properties.
-    actor = undefined,
-    action = undefined,
-    actee = undefined,
-    details = undefined,
+    action,
+    actor = defaultActor(action),
+    actee = defaultActee(action),
+    details = null,
+    notes = null,
 
     loggedAt = undefined
   }) => {
-    if (!inPast) throw new Error('inPast must be true');
     if (action == null) throw new Error('invalid action');
     const audit = { action };
     if (actor != null) {
       audit.actor = toActor(actor);
       audit.actorId = actor.id;
     }
-    if (actee != null) {
-      audit.actee = actee;
-      audit.acteeId = actee.id;
-    }
-    if (details != null) audit.details = details;
+    if (actee != null) audit.actee = actee;
+    audit.details = details;
+    audit.notes = notes;
     audit.loggedAt = loggedAt != null
       ? loggedAt
-      : fakePastDate([lastCreatedAt]);
+      : (inPast ? fakePastDate([lastCreatedAt]) : new Date().toISOString());
     audit.createdAt = audit.loggedAt;
     return audit;
   },

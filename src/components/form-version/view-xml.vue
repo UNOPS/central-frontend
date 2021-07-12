@@ -104,6 +104,12 @@ export default {
   },
   "fr": {
     "title": "Afficher le XML"
+  },
+  "id": {
+    "title": "Lihat XML"
+  },
+  "ja": {
+    "title": "XMLの閲覧"
   }
 }
 </i18n>

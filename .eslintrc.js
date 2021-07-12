@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
   parserOptions: {
-    parser: 'babel-eslint'
+    ecmaVersion: 2020
   },
   extends: [
     'plugin:vue/recommended',
@@ -11,22 +11,22 @@ module.exports = {
     node: true
   },
   globals: {
-    '$': false,
-    alert: false,
-    document: false,
-    window: false
+    $: 'readonly',
+    alert: 'readonly',
+    document: 'readonly',
+    window: 'readonly'
   },
   rules: {
     'arrow-parens': 'off',
     'class-methods-use-this': 'off',
     'comma-dangle': ['error', 'never'],
-    'curly': 'off',
+    curly: 'off',
     'implicit-arrow-linebreak': 'off',
     'lines-between-class-members': ['error', 'always', {
       exceptAfterSingleLine: true
     }],
+    'max-classes-per-file': 'off',
     'max-len': 'off',
-    'no-confusing-arrow': ['error', { allowParens: true }],
     'no-console': 'error',
     'no-debugger': 'error',
     'no-empty': ['error', { allowEmptyCatch: true }],
@@ -69,6 +69,7 @@ module.exports = {
       math: 'always'
     }],
     'vue/max-attributes-per-line': 'off',
+    'vue/require-default-prop': 'off',
     'vue/singleline-html-element-content-newline': 'off'
   }
 };

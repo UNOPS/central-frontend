@@ -11,11 +11,7 @@ except according to the terms contained in the LICENSE file.
 */
 import { last } from 'ramda';
 
-export const forceReplace = (router, store, location) => {
-  if (store.state.router.unsavedChanges)
-    store.commit('setUnsavedChanges', false);
-  router.replace(location);
-};
+import i18n from '../i18n';
 
 // Returns the props for a route component.
 export const routeProps = (route, props) => {
@@ -26,6 +22,27 @@ export const routeProps = (route, props) => {
   return props;
 };
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// UNSAVED CHANGES
+
+export const forceReplace = (router, store, location) => {
+  if (store.state.router.unsavedChanges)
+    store.commit('setUnsavedChanges', false);
+  return router.replace(location);
+};
+
+export const confirmUnsavedChanges = (store) =>
+  !store.state.router.unsavedChanges ||
+  // eslint-disable-next-line no-alert
+  window.confirm(i18n.t('router.unsavedChanges'));
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// RESPONSE DATA
+
 /*
 preservesData() returns `true` if the data for `key` should not be cleared when
 the route changes from `from` to `to`. Otherwise it returns `false`.
@@ -35,7 +52,7 @@ the route changes from `from` to `to`. Otherwise it returns `false`.
   - from. A Route object.
 */
 export const preservesData = (key, to, from) => {
-  // First navigation
+  // Initial navigation
   if (from.matched.length === 0) return true;
   const forKey = last(to.matched).meta.preserveData[key];
   if (forKey == null) return false;
@@ -63,4 +80,18 @@ export const canRoute = (to, from, store) => {
     }
   }
   return true;
+};
+
+/*
+updateDocumentTitle(to, store) updates the document title based on the route's title info.
+
+  - to. A Route object for the current route.
+  - store. Gets destructured in title parts() to pick out the name of the
+    resource object (e.g. project or form).
+*/
+export const updateDocumentTitle = (to, store) => {
+  const titlePath = to.meta.title.parts(store.state.request.data);
+  // Append ODK Central to every title, filter out any null values (e.g.
+  // project name before the project object was loaded), join with separator.
+  document.title = titlePath.concat('ODK Central').filter(x => x).join(' | ');
 };

@@ -22,6 +22,13 @@ body {
   box-shadow: 0 -2px 0 #777 inset;
   color: $color-text;
   min-height: 100vh;
+
+  &:lang(ja) { font-family: "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; }
+
+  &.scroll {
+    overflow-y: scroll;
+    &.modal-open { overflow-y: hidden; }
+  }
 }
 
 h1, .h1 {
@@ -31,7 +38,30 @@ h1, .h1 {
   margin-bottom: 3px;
 }
 
-p { max-width: $max-width-p; }
+p { @include text-block; }
+
+dl div {
+  display: flex;
+  flex-direction: column-reverse;
+
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+  padding-top: 10px;
+
+  &:first-child { padding-top: 0; }
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+dt {
+  color: #666;
+  font-weight: normal;
+}
+
+dd { font-size: 16px; }
 
 pre {
   background-color: $color-subpanel-background;
@@ -40,29 +70,17 @@ pre {
   code { white-space: pre; }
 }
 
+em:lang(ja) {
+  font-style: normal;
+  font-weight: bold;
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // ICONS
 
-.btn, a {
-  .caret { margin-left: 6px; }
-}
-
-[class^="icon-"], [class*=" icon-"] {
-  vertical-align: -1px;
-
-  .btn > &:first-child, a > &:first-child {
-    margin-right: $margin-right-icon;
-    + .caret { margin-left: 0; }
-  }
-
-  a > &:first-child {
-    // Using inline-block so that the icon is not underlined even when the link
-    // has `text-decoration: underline`.
-    display: inline-block;
-  }
-}
+[class^="icon-"] { vertical-align: -1px; }
 
 /* Bootstrap has an .icon-bar class that is unrelated to IcoMoon, but our
 IcoMoon styles end up applying to it, because our IcoMoon selectors select on
@@ -91,55 +109,60 @@ class. */
 ////////////////////////////////////////////////////////////////////////////////
 // LINKS AND BUTTONS
 
+.btn, a {
+  .caret { margin-left: 6px; }
+
+  > [class^="icon-"]:first-child {
+    // There should not be white space between an icon and text content that
+    // follows it. For a link in particular, the underlining will be off if
+    // there is white space.
+    margin-right: $margin-right-icon;
+
+    + .caret { margin-left: 0; }
+  }
+}
+
+$btn-focus-box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.18);
 .btn {
   border: none;
   border-radius: 2px;
-  font-size: $font-size-button;
-  padding: 6px 10px 5px;
-
-  // I think we set these for the Spinner component.
+  font-size: $font-size-btn;
+  // I think we set this for the Spinner component.
   overflow: hidden;
+  padding: $padding-top-btn $hpadding-btn $padding-bottom-btn;
   position: relative;
 
-  &:focus { outline: none; }
-}
-
-.btn-group.open .dropdown-toggle { box-shadow: none; }
-.btn, .btn-group.open .dropdown-toggle {
-  &:focus { box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.18); }
+  &:focus, &:active:focus { outline: none; }
+  &:focus { box-shadow: $btn-focus-box-shadow; }
 }
 
 .btn-primary {
   background-color: $color-action-background;
+  &[disabled] { background-color: $color-action-background-disabled; }
 
-  &:hover, &:focus {
+  &:hover, &:focus, &:active:focus {
     background-color: $color-action-background-hover;
-  }
-
-  &[disabled] {
-    &, &:hover, &:focus {
-      background-color: $color-action-background-disabled;
-    }
+    &[disabled] { background-color: $color-action-background-disabled; }
   }
 }
 
-.btn-secondary {
-  @extend .btn-primary;
+.btn-default {
+  background-color: #ddd;
 
-  &, &:hover, &:focus {
-    color: #fff;
+  &:hover, &:focus, &:active:focus {
+    background-color: #ccc;
+    &[disabled] { background-color: #ddd; }
   }
+
+  > [class^="icon-"]:first-child { color: $color-action-background; }
 }
 
 .btn-danger {
   background-color: $color-danger;
 
-  &:hover, &:focus {
+  &:hover, &:focus, &:active:focus {
     background-color: $color-danger-dark;
-
-    &[disabled] {
-      background-color: $color-danger;
-    }
+    &[disabled] { background-color: $color-danger; }
   }
 }
 
@@ -178,7 +201,15 @@ a {
     &.btn { color: #fff; }
   }
 
-  > .icon-angle-right:last-child { color: $color-accent-primary; }
+  > [class^="icon-"]:first-child {
+    // Using inline-block so that the icon is not underlined even when the link
+    // has `text-decoration: underline`.
+    display: inline-block;
+  }
+
+  > .icon-angle-right:last-child:not(:first-child) {
+    color: $color-accent-primary;
+  }
 }
 
 .btn-link {
@@ -188,20 +219,56 @@ a {
     background-clip: content-box;
     box-shadow: none;
   }
+}
 
-  &:active:focus {
-    outline: none;
+.btn-group {
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+
+  .dropdown-toggle:active, &.open .dropdown-toggle { outline: none; }
+  &.open .dropdown-toggle:focus { box-shadow: $btn-focus-box-shadow; }
+
+  > .btn {
+    float: left;
+
+    &:hover, &:focus, &:active { z-index: 2; }
+    &:focus { box-shadow: none; }
+
+    + .dropdown-toggle {
+      padding-left: 8px;
+      padding-right: 8px;
+    }
   }
+
+  > .btn:not(:first-child):not(:last-child):not(.dropdown-toggle) {
+    border-radius: 0;
+  }
+  > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+  }
+  > .btn:last-child:not(:first-child), > .dropdown-toggle:not(:first-child) {
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+  }
+
+  > .btn-default + .btn-default { border-left: 1px solid #ccc; }
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// DROPDOWNS
+// DROPDOWN MENUS
 
 .dropdown-menu {
   font-size: $font-size-dropdown-menu;
   min-width: $min-width-dropdown-menu;
+
+  .divider {
+    margin-bottom: 5px;
+    margin-top: 5px;
+  }
 }
 
 
@@ -415,8 +482,6 @@ $form-group-padding-bottom: 15px;
 .empty-table-message {
   color: #555;
   font-size: 15px;
-  // Unless the message is quite long, we want it to fit on one line.
-  max-width: 650px;
 }
 
 
@@ -501,7 +566,7 @@ becomes more complicated.
 }
 
 .panel-main {
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.25), 0 35px 115px rgba(0, 0, 0, 0.28);
+  box-shadow: $box-shadow-panel-main;
   margin-top: 70px;
 
   .panel-body {

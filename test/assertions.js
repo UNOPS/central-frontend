@@ -1,7 +1,10 @@
 import should from 'should';
 
-import Alert from '../src/components/alert.vue';
-import { unwrapElement } from './util/util';
+// Returns an element that may be wrapped in an avoriaz wrapper.
+const unwrapElement = (elementOrWrapper) =>
+  (elementOrWrapper instanceof HTMLElement
+    ? elementOrWrapper
+    : elementOrWrapper.element);
 
 // Asserts that an element is not individually hidden and that all its ancestors
 // are also not hidden. To test style-based visibility, attach the component to
@@ -26,6 +29,8 @@ should.Assertion.add('hidden', function hidden(computed = false) {
   display.should.equal('none');
 });
 
+// Deprecated. Make an explicit assertion about either the `disabled` attribute
+// or the HTML class.
 should.Assertion.add('disabled', function assertDisabled() {
   this.params = { operator: 'to be disabled' };
   const element = unwrapElement(this.obj);
@@ -42,9 +47,9 @@ should.Assertion.add('focused', function focused() {
 });
 
 should.Assertion.add('alert', function assertAlert(type = undefined, message = undefined) {
-  const alert = this.obj.first(Alert);
-  alert.vm.$el.style.display.should.equal('');
-  if (type != null) alert.hasClass(`alert-${type}`).should.be.true();
-  if (message != null)
-    alert.first('.alert-message').text().should.match(message);
+  this.params = { operator: 'to show an alert' };
+  const { alert } = this.obj.vm.$store.state;
+  alert.state.should.be.true();
+  if (type != null) alert.type.should.equal(type);
+  if (message != null) alert.message.should.match(message);
 });

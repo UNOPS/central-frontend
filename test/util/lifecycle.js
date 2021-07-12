@@ -1,10 +1,12 @@
 import { mount as avoriazMount } from 'avoriaz';
 
-import Root from './lifecycle/root.vue';
+import TestUtilDynamic from './components/dynamic.vue';
+
 import i18n from '../../src/i18n';
 import router from '../../src/router';
 import store from '../../src/store';
-import { transforms } from '../../src/store/modules/request/keys';
+
+import { setData } from './store';
 
 
 
@@ -32,33 +34,11 @@ export const destroyMarkedComponents = () => {
 ////////////////////////////////////////////////////////////////////////////////
 // MOUNT
 
-const successfulResponse = (data) => ({
-  status: 200,
-  data,
-  get config() { throw new Error(); }
-});
-const problemResponse = (code) => ({
-  status: Math.floor(code),
-  data: { code, message: 'Problem' },
-  get config() { throw new Error(); }
-});
-const setRequestData = (data) => {
-  for (const [key, value] of Object.entries(data)) {
-    const transform = transforms[key];
-    if (transform == null && value.problem != null)
-      throw new Error('unexpected problem response');
-    const response = value.problem == null
-      ? successfulResponse(value)
-      : problemResponse(value);
-    const transformed = transform != null ? transform(response) : response.data;
-    store.commit('setData', { key, value: transformed });
-  }
-};
-
 const optionsSupportedWithI18n = new Set([
   'propsData',
   'slots',
   'attachToDocument',
+  'router',
   'requestData'
 ]);
 
@@ -67,17 +47,17 @@ export const mount = (component, options = {}) => {
   // $i18n property will be different from the root VueI18n instance. Because
   // many components with an i18n custom block also access the root VueI18n
   // instance, we will transparently wrap the component in another component
-  // (Root), which will be the root component and whose $i18n property will be
-  // the root VueI18n instance.
+  // (TestUtilDynamic), which will be the root component and whose $i18n
+  // property will be the root VueI18n instance.
   if (component.__i18n != null) {
     for (const name of Object.keys(options)) {
       if (!optionsSupportedWithI18n.has(name)) {
         // Some mount() options will not work with the current strategy to use
-        // Root.
+        // TestUtilDynamic.
         throw new Error('unknown or unsupported option');
       }
     }
-    const root = mount(Root, {
+    const root = mount(TestUtilDynamic, {
       ...options,
       propsData: { component, props: options.propsData }
     });
@@ -102,11 +82,14 @@ export const mount = (component, options = {}) => {
   const { requestData, ...mountOptions } = options;
 
   // Normalize the options.
-  if (mountOptions.router === true) mountOptions.router = router;
+  if (mountOptions.router === true)
+    mountOptions.router = router;
+  else if (mountOptions.router === false)
+    delete mountOptions.router;
   mountOptions.store = store;
   mountOptions.i18n = i18n;
 
-  if (requestData != null) setRequestData(requestData);
+  if (requestData != null) setData(requestData);
 
   const wrapper = avoriazMount(component, mountOptions);
   componentsToDestroy.push(wrapper);
@@ -115,3 +98,13 @@ export const mount = (component, options = {}) => {
 
 // Deprecated
 export const mountAndMark = mount;
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// UPDATE
+
+export const setProps = (wrapper, props) => {
+  wrapper.setProps(props);
+  return wrapper.vm.$nextTick();
+};

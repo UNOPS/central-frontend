@@ -116,6 +116,12 @@ export default {
       "Di sini Anda bisa menemukan catatan tindakan-tindakan yang dilakukan di server ini. Perubahan terhadap pengguna, proyek, atau pengaturan formulir dapat ditemukan di sini."
     ],
     "emptyTable": "Tidak ada catatan audit yang cocok."
+  },
+  "ja": {
+    "heading": [
+      "ここでは、このサーバーで行われた重要な操作履歴を閲覧できます。ユーザーやプロジェクト、フォーム設定への変更は、ここで確認できます。"
+    ],
+    "emptyTable": "照合できる監査ログの記録がありません。"
   }
 }
 </i18n>

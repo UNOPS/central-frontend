@@ -31,7 +31,7 @@ except according to the terms contained in the LICENSE file.
     <td>
       <div class="dropdown">
         <button :id="actionsId" type="button"
-          class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+          class="btn btn-default dropdown-toggle" data-toggle="dropdown"
           aria-haspopup="true" aria-expanded="false">
           <span class="icon-cog"></span><span class="caret"></span>
         </button>
@@ -116,7 +116,7 @@ export default {
     }
   },
   "de": {
-    "seeCode": "QR Code",
+    "seeCode": "QR-Code",
     "accessRevoked": "Zugriffsberechtigung zurückgezogen",
     "action": {
       "revokeAccess": "Zugriffsberechtigung entziehen"
@@ -141,6 +141,13 @@ export default {
     "accessRevoked": "Akses dicabut",
     "action": {
       "revokeAccess": "Cabut akses"
+    }
+  },
+  "ja": {
+    "seeCode": "QRコードを表示",
+    "accessRevoked": "アクセス権の取消済み",
+    "action": {
+      "revokeAccess": "アクセス権の取消"
     }
   }
 }

@@ -26,14 +26,24 @@ export const queryString = (query) => {
 
 const projectPath = (suffix) => (id, query = undefined) =>
   `/v1/projects/${id}${suffix}${queryString(query)}`;
-const formPath = (suffix, queryDefaults = undefined) =>
-  (projectId, xmlFormId, query = undefined) => {
+const formPath = (suffix) => (projectId, xmlFormId, query = undefined) => {
+  const encodedFormId = encodeURIComponent(xmlFormId);
+  const qs = queryString(query);
+  return `/v1/projects/${projectId}/forms/${encodedFormId}${suffix}${qs}`;
+};
+const formOrDraftPath = (suffix) =>
+  (projectId, xmlFormId, draft = false, query = undefined) => {
     const encodedFormId = encodeURIComponent(xmlFormId);
-    const combinedQuery = queryDefaults != null
-      ? (query != null ? { ...queryDefaults, ...query } : queryDefaults)
-      : query;
-    const qs = queryString(combinedQuery);
-    return `/v1/projects/${projectId}/forms/${encodedFormId}${suffix}${qs}`;
+    const draftPath = draft ? '/draft' : '';
+    const qs = queryString(query);
+    return `/v1/projects/${projectId}/forms/${encodedFormId}${draftPath}${suffix}${qs}`;
+  };
+const submissionPath = (suffix) =>
+  (projectId, xmlFormId, instanceId, query = undefined) => {
+    const encodedFormId = encodeURIComponent(xmlFormId);
+    const encodedInstanceId = encodeURIComponent(instanceId);
+    const qs = queryString(query);
+    return `/v1/projects/${projectId}/forms/${encodedFormId}/submissions/${encodedInstanceId}${suffix}${qs}`;
   };
 export const apiPaths = {
   // Backend generates session tokens that are URL-safe.
@@ -51,20 +61,22 @@ export const apiPaths = {
   formSummaryAssignments: (projectId, role) =>
     `/v1/projects/${projectId}/assignments/forms/${role}`,
   form: formPath(''),
+  odataSvc: formOrDraftPath('.svc'),
   formActors: (projectId, xmlFormId, role) => {
     const encodedFormId = encodeURIComponent(xmlFormId);
     return `/v1/projects/${projectId}/forms/${encodedFormId}/assignments/${role}`;
   },
+  fields: formOrDraftPath('/fields'),
   formVersions: formPath('/versions'),
   formVersionDef: (projectId, xmlFormId, version, extension) => {
     const encodedFormId = encodeURIComponent(xmlFormId);
     const encodedVersion = version !== '' ? encodeURIComponent(version) : '___';
-    return `/v1/projects/${projectId}/forms/${encodedFormId}/versions/${encodedVersion}.${extension}`;
+    return `/v1/projects/${projectId}/forms/${encodedFormId}/versions/${encodedVersion}${extension}`;
   },
   formDraft: formPath('/draft'),
   formDraftDef: (projectId, xmlFormId, extension) => {
     const encodedFormId = encodeURIComponent(xmlFormId);
-    return `/v1/projects/${projectId}/forms/${encodedFormId}/draft.${extension}`;
+    return `/v1/projects/${projectId}/forms/${encodedFormId}/draft${extension}`;
   },
   serverUrlForFormDraft: (token, projectId, xmlFormId) => {
     const encodedFormId = encodeURIComponent(xmlFormId);
@@ -77,8 +89,31 @@ export const apiPaths = {
     const encodedName = encodeURIComponent(attachmentName);
     return `/v1/projects/${projectId}/forms/${encodedFormId}/draft/attachments/${encodedName}`;
   },
-  formDraftSubmissionKeys: formPath('/draft/submissions/keys'),
-  submissionKeys: formPath('/submissions/keys'),
+  submissions: (projectId, xmlFormId, draft, extension, query = undefined) => {
+    const encodedFormId = encodeURIComponent(xmlFormId);
+    const draftPath = draft ? '/draft' : '';
+    const qs = queryString(query);
+    return `/v1/projects/${projectId}/forms/${encodedFormId}${draftPath}/submissions${extension}${qs}`;
+  },
+  odataSubmissions: formOrDraftPath('.svc/Submissions'),
+  submissionKeys: formOrDraftPath('/submissions/keys'),
+  submitters: formOrDraftPath('/submissions/submitters'),
+  submission: submissionPath(''),
+  odataSubmission: (projectId, xmlFormId, instanceId) => {
+    const encodedFormId = encodeURIComponent(xmlFormId);
+    const encodedInstanceId = encodeURIComponent(instanceId.replaceAll("'", "''"));
+    return `/v1/projects/${projectId}/forms/${encodedFormId}.svc/Submissions('${encodedInstanceId}')`;
+  },
+  editSubmission: submissionPath('/edit'),
+  submissionAttachment: (projectId, xmlFormId, draft, instanceId, attachmentName) => {
+    const encodedFormId = encodeURIComponent(xmlFormId);
+    const draftPath = draft ? '/draft' : '';
+    const encodedInstanceId = encodeURIComponent(instanceId);
+    const encodedName = encodeURIComponent(attachmentName);
+    return `/v1/projects/${projectId}/forms/${encodedFormId}${draftPath}/submissions/${encodedInstanceId}/attachments/${encodedName}`;
+  },
+  submissionAudits: submissionPath('/audits'),
+  submissionComments: submissionPath('/comments'),
   publicLinks: formPath('/public-links'),
   fieldKeys: projectPath('/app-users'),
   serverUrlForFieldKey: (token, projectId) =>
@@ -106,24 +141,23 @@ export const isProblem = (data) => data != null && typeof data === 'object' &&
   data.code != null && data.message != null;
 
 export const logAxiosError = (error) => {
-  const { $logger } = Vue.prototype;
-  if (error.response != null)
-    $logger.log(error.response.data);
-  else if (error.request != null)
-    $logger.log(error.request);
-  else
-    $logger.log('Error', error.message);
+  if (error.response == null) {
+    Vue.prototype.$logger.log(error.request != null
+      ? error.request
+      : error.message);
+  }
 };
 
 // See the `request` mixin for a description of this function's behavior.
 export const requestAlertMessage = (axiosError, options = {}) => {
   // No Problem response
   if (axiosError.request == null) return i18n.t('util.request.noRequest');
-  if (axiosError.response == null) return i18n.t('util.request.noResponse');
-  const { data } = axiosError.response;
-  if (!isProblem(data)) return i18n.t('util.request.errorNotProblem');
+  const { response } = axiosError;
+  if (response == null) return i18n.t('util.request.noResponse');
+  if (!isProblem(response.data))
+    return i18n.t('util.request.errorNotProblem', response);
 
-  const problem = data;
+  const problem = response.data;
 
   const { problemToAlert } = options;
   if (problemToAlert != null) {

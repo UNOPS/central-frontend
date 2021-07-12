@@ -15,10 +15,19 @@ except according to the terms contained in the LICENSE file.
     <template #title>{{ $t('title') }}</template>
     <template #body>
       <template v-if="step === 0">
+        <div class="modal-warnings">
+          <i18n tag="p" path="steps[0].warning.full">
+            <template #forum>
+              <a href="https://forum.getodk.org/" target="_blank">{{ $t('steps[0].warning.forum') }}</a>
+            </template>
+          </i18n>
+        </div>
         <p class="modal-introduction">
-          {{ $t('steps[0].introduction[0]') }}
+          <span>{{ $t('steps[0].introduction[0]') }}</span>
+          <sentence-separator/>
           <strong>{{ $t('steps[0].introduction[1]') }}</strong>
-          {{ $t('steps[0].introduction[2]') }}
+          <sentence-separator/>
+          <span>{{ $t('steps[0].introduction[2]') }}</span>
         </p>
         <form @submit.prevent="initiate">
           <form-group ref="passphrase" v-model="passphrase"
@@ -89,7 +98,9 @@ except according to the terms contained in the LICENSE file.
 <script>
 import FormGroup from '../form-group.vue';
 import Modal from '../modal.vue';
+import SentenceSeparator from '../sentence-separator.vue';
 import Spinner from '../spinner.vue';
+
 import request from '../../mixins/request';
 import { noop } from '../../util/util';
 
@@ -97,7 +108,7 @@ const GOOGLE_BREAKPOINT = 601;
 
 export default {
   name: 'BackupNew',
-  components: { FormGroup, Modal, Spinner },
+  components: { FormGroup, Modal, SentenceSeparator, Spinner },
   mixins: [request()],
   props: {
     state: {
@@ -179,6 +190,10 @@ export default {
     "title": "Set up Backups",
     "steps": [
       {
+        "warning": {
+          "full": "This backup does not currently include Web Form links. If you share Public Access Links or externally link directly to Web Forms for making new Submissions, we strongly recommend that you also make a full system backup until this is addressed. If you have to restore from backup and end up with broken Preview links, please post to {forum} to get help.",
+          "forum": "the forum"
+        },
         "introduction": [
           "If you want, you may set up an encryption passphrase which must be used to unlock the backup.",
           "There is no way to recover the passphrase if you lose it!",
@@ -223,6 +238,10 @@ export default {
     "title": "Nastavení záloh",
     "steps": [
       {
+        "warning": {
+          "full": "Tato záloha aktuálně neobsahuje odkazy na webové formuláře. Pokud sdílíte veřejné přístupové odkazy nebo externě odkazujete přímo na webové formuláře za účelem vytváření nových příspěvků, důrazně doporučujeme provést také úplnou zálohu systému, dokud nebude tento problém vyřešen. Pokud musíte obnovit ze zálohy a skončit s nefunkčními odkazy na náhled, pošlete příspěvek na {forum} a požádejte o pomoc.",
+          "forum": "fórum"
+        },
         "introduction": [
           "Pokud chcete, můžete nastavit šifrovací přístupové heslo, které musí být použito k odemknutí zálohy.",
           "Pokud heslo ztratíte, není možné jej obnovit.",
@@ -261,6 +280,10 @@ export default {
     "title": "Sicherheitskopien einrichten",
     "steps": [
       {
+        "warning": {
+          "full": "Dieses Backup enthält aktuell keine Web-Formular-Links. Wenn Sie öffentliche Zugangslinks teilen oder extern auf Web-Formular-Links verlinken, um neue Übermittlungen zu machen, empfehlen wir, dass Sie auch ein vollständiges System-Backup durchführen, bis dies gelöst ist. Wenn Sie aus einem Backup wiederherstellen müssen und defekte Vorschau-Links erhalten, erstellen Sie einen Eintrag im {forum}, um Hilfe zu erhalten.",
+          "forum": "das Forum"
+        },
         "introduction": [
           "Sie können das Backup optional mit einer Passphrase sichern. Das Backup kann dann nur mit dieser Passphrase entschlüsselt werden.",
           "Eine verlorene Passphrase kann nicht wiederhergestellt werden!",
@@ -299,6 +322,10 @@ export default {
     "title": "Configurar copias de seguridad.",
     "steps": [
       {
+        "warning": {
+          "full": "Actualmente, esta copia de seguridad no incluye enlaces a formularios web. Si comparte enlaces de acceso público o un enlace externo directamente a formularios web para realizar nuevos envíos, le recomendamos encarecidamente que también haga una copia de seguridad completa del sistema hasta que se solucione este problema. Si tiene que restaurar desde la copia de seguridad y termina con enlaces de vista previa rotos, publique en el {forum} para obtener ayuda.",
+          "forum": "el foro"
+        },
         "introduction": [
           "Si usted quiere, puede configurar una frase de contraseña de cifrado que debe usarse para desbloquear la copia de seguridad.",
           "¡No hay forma de recuperar la frase de contraseña si la pierde!",
@@ -337,6 +364,10 @@ export default {
     "title": "Configurer des sauvegardes",
     "steps": [
       {
+        "warning": {
+          "full": "Cette sauvegarde n'inclue pas les liens de formulaires Web. Si vous partagez des liens d'accès public ou partagez des liens directs à vos formulaires Web, nous recommandons fortement que vous fassiez également une sauvegarde complete du système jusqu'à ce que ceci soit adressé. Si vous devez restaurer vos données d'une sauvegarde et vous retrouvez avec des liens d'aperçu qui ne fonctionnent pas, veuillez écrire un message sur {forum} pour recevoir de l'aide.",
+          "forum": "le forum"
+        },
         "introduction": [
           "Si vous le désirez, vous pouvez définir une phrase de passe de cryptage pour déverrouiller la sauvegarde.",
           "Il n'y a aucun moyen de retrouver la phrase de passe si vous la perdez !",
@@ -407,6 +438,48 @@ export default {
     },
     "problem": {
       "verify": "Mohon coba lagi, dan kunjungi forum komunitas jika terjadi masalah berkelanjutan."
+    }
+  },
+  "ja": {
+    "title": "バックアップの設定",
+    "steps": [
+      {
+        "warning": {
+          "full": "このバックアップには、現在、Webフォームのリンクは含まれていません。一般公開リンクを共有している場合や、新規のフォーム提出のためにWebフォームに外部から直接リンクしている場合、この問題が解決するまでシステムのフルバックアップを行うことを強く推奨します。もしバックアップから復元する場合にプレビューリンクが壊れたままの場合、{forum}に状況を投稿し、サポートを受けて下さい。",
+          "forum": "フォーラム"
+        },
+        "introduction": [
+          "暗号化パスフレーズを設定できますが、暗号化パスフレーズはバックアップの復号時に必ず必要です。",
+          "パスフレーズを忘れた場合、復元する方法はありません！",
+          "覚えやすいものを選ぶか、安全な場所に書き留めて下さい。"
+        ]
+      },
+      {
+        "introduction": [
+          {
+            "full": "保管のために、サーバーはデータをGoogle Driveに送信します。{here}で無料のアカウントを登録できます 。",
+            "here": "こちら"
+          },
+          "「次へ」を押すと、Googleによって、このサーバーがあなたのGoogleアカウントにアクセス許可を与えるか、が確認されます。サーバーに許されるのは、サーバーが作成したバックアップファイルへのアクセスのみです。",
+          "承認後、確認用の文字列をここにコピー＆ペーストすることを要求されます。"
+        ]
+      },
+      {
+        "introduction": [
+          {
+            "full": "おかえりなさい！コピー＆ペースト用のテキストは出てきましたか？見つからない場合は、{here}をクリックしてもう一度試して下さい。",
+            "here": "こちら"
+          },
+          "問題なければ、これをペーストして終わりです！"
+        ]
+      }
+    ],
+    "field": {
+      "passphrase": "パスフレーズ（任意）",
+      "confirmationText": "確認用の文字列"
+    },
+    "problem": {
+      "verify": "再度試し、問題が解決しない場合はコミュニティフォーラムを確認して下さい。"
     }
   }
 }

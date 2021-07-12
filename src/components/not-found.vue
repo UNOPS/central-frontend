@@ -14,7 +14,7 @@ except according to the terms contained in the LICENSE file.
     <div class="col-xs-12 col-sm-offset-3 col-sm-6">
       <div class="panel panel-default panel-main">
         <div class="panel-heading">
-          <h1 class="panel-title">{{ $t('title') }}</h1>
+          <h1 class="panel-title">{{ $t('title.pageNotFound') }}</h1>
         </div>
         <div class="panel-body">
           <p>{{ $t('body') }}</p>
@@ -33,8 +33,6 @@ export default {
 <i18n lang="json5">
 {
   "en": {
-    // This is a title shown above a section of the page.
-    "title": "Page Not Found",
     "body": "The page you requested could not be found."
   }
 }
@@ -44,24 +42,22 @@ export default {
 <i18n>
 {
   "cs": {
-    "title": "Strana nenalezena",
     "body": "Požadovanou stránku nelze najít."
   },
   "de": {
-    "title": "Seite nicht gefunden",
     "body": "Die von Ihnen gewünschte Seite wurde nicht gefunden."
   },
   "es": {
-    "title": "Página no encontrada",
     "body": "La página que está solicitando no pudo ser encontrada."
   },
   "fr": {
-    "title": "Page non trouvée",
     "body": "La page demandée ne peut être trouvée."
   },
   "id": {
-    "title": "Laman tidak ditemui",
     "body": "Laman yang Anda minta tidak ditemui."
+  },
+  "ja": {
+    "body": "リクエストされたページは見つかりません。"
   }
 }
 </i18n>

@@ -69,11 +69,12 @@ export default {
   computed: requestData(['form']),
   methods: {
     afterDelete(form) {
-      this.$router.push(this.projectPath(), () => {
-        this.$alert().success(this.$t('alert.delete', {
-          name: form.nameOrId()
-        }));
-      });
+      this.$router.push(this.projectPath())
+        .then(() => {
+          this.$alert().success(this.$t('alert.delete', {
+            name: form.nameOrId()
+          }));
+        });
     }
   }
 };
@@ -184,6 +185,21 @@ export default {
     },
     "alert": {
       "delete": "Formulir {name} telah dihapus."
+    }
+  },
+  "ja": {
+    "state": {
+      "title": "フォームの状態",
+      "body": {
+        "full": "このフォームの状態を設定するには、各プロジェクトの{formAccessSettings}を確認して下さい。",
+        "formAccessSettings": "フォームアクセスの設定"
+      }
+    },
+    "action": {
+      "delete": "フォームを削除"
+    },
+    "alert": {
+      "delete": "フォーム\"{name}\"は削除されました。"
     }
   }
 }

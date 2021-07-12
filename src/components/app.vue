@@ -11,12 +11,11 @@ except according to the terms contained in the LICENSE file.
 -->
 <template>
   <div ref="app">
-    <!-- Do not show the navbar until the first time a navigation is confirmed.
-    The user's session may change during that time, affecting how the navbar is
-    rendered. -->
+    <!-- If the user's session is restored during the initial navigation, that
+    will affect how the navbar is rendered. -->
     <navbar v-show="anyNavigationConfirmed"/>
     <alert id="app-alert"/>
-    <div class="container-fluid">
+    <div class="container-fluid" @click="hideAlertAfterClick">
       <router-view/>
     </div>
   </div>
@@ -28,16 +27,30 @@ import { mapState } from 'vuex';
 import Alert from './alert.vue';
 import Navbar from './navbar.vue';
 
+import { useSessions } from '../util/session';
+
 export default {
   name: 'App',
   components: { Alert, Navbar },
-  // Vue seems to trigger the initial navigation before creating App. If the
-  // initial navigation is synchronous, Vue seems to confirm the navigation
-  // before creating App. However, if the initial navigation is asynchronous,
-  // Vue seems to create App before confirming the navigation.
   computed: mapState({
+    // Vue seems to trigger the initial navigation before creating App. If the
+    // initial navigation is synchronous, Vue seems to confirm the navigation
+    // before creating App. However, if the initial navigation is asynchronous,
+    // Vue seems to create App before confirming the navigation.
     anyNavigationConfirmed: (state) => state.router.anyNavigationConfirmed
-  })
+  }),
+  created() {
+    this.$once('hook:beforeDestroy', useSessions(this.$router, this.$store));
+  },
+  methods: {
+    hideAlertAfterClick(event) {
+      const alert = this.$alert();
+      if (alert.state && event.target.closest('a[target="_blank"]') != null &&
+        !event.defaultPrevented) {
+        alert.blank();
+      }
+    }
+  }
 };
 </script>
 

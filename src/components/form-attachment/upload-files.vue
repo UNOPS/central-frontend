@@ -152,6 +152,19 @@ export default {
         "clickHere": "klik di sini untuk memilih"
       }
     ]
+  },
+  "ja": {
+    "title": "ファイルのアップロード",
+    "introduction": [
+      {
+        "full": "ファイルのアップロードは、１つまたは複数のファイルをこのページの表に{dragAndDrop}することで可能です。",
+        "dragAndDrop": "ドラッグ＆ドロップ"
+      },
+      {
+        "full": "プロンプトからファイルを選択したい場合は、表にあるものとファイル名が一致していることを確認してから、{clickHere}。",
+        "clickHere": "こちらをクリックして選択する"
+      }
+    ]
   }
 }
 </i18n>

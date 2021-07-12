@@ -1,4 +1,37 @@
 {
+  "title": {
+    "resetPassword": "Passwort zurücksetzen",
+    "setPassword": "Passwort festlegen",
+    "editProfile": "Profil bearbeiten",
+    "download": "Herunterladen",
+    "pageNotFound": "Seite nicht gefunden",
+    "details": "Details"
+  },
+  "projectShow": {
+    "tab": {
+      "formAccess": "Formular-Zugriff"
+    }
+  },
+  "formHead": {
+    "tab": {
+      "versions": "Versionen",
+      "publicAccess": "Öffentlicher Zugriff"
+    },
+    "draftNav": {
+      "tab": {
+        "status": "Status",
+        "attachments": "Mediendateien",
+        "testing": "Testen"
+      }
+    }
+  },
+  "systemHome": {
+    "title": "System-Management",
+    "tab": {
+      "backups": "Sicherheitskopien",
+      "audits": "Server Audit Logs"
+    }
+  },
   "role": {
     "none": "Keine",
     "admin": "Administrator",
@@ -11,6 +44,14 @@
     "closing": "Schließen",
     "closed": "Geschlossen"
   },
+  "reviewState": {
+    "received": "Empfangen",
+    "hasIssues": "Hat Probleme",
+    "edited": "Bearbeitet",
+    "approved": "Bestätigt",
+    "rejected": "Abgelehnt",
+    "null": "@:reviewState.received"
+  },
   "audit": {
     "category": {
       "nonverbose": "(Alle Aktionen)",
@@ -19,20 +60,27 @@
       "form": "Formular-Aktionen",
       "field_key": "App-Benutzer-Aktionen",
       "public_link": "Öffentlicher Zugangslink-Aktionen",
-      "session": "Sitzungsaktionen",
+      "config": "Server-Konfigurationsaktionen",
       "upgrade": "Server-Aktualisierung"
     },
     "action": {
       "default": {
         "create": "Erstellen",
         "update": "Details aktualisieren",
+        "session_end": "Widerrufen",
         "delete": "Löschen"
       },
-      "assignment": {
-        "create": "Rolle zuweisen",
-        "delete": "Rolle entziehen"
-      },
       "backup": "Sicherheitskopie",
+      "config": {
+        "set": "Setzen"
+      },
+      "field_key": {
+        "assignment_create": "Zugriff erteilen",
+        "assignment_delete": "Zugriff entziehen",
+        "create": "@:audit.action.default.create",
+        "session_end": "@:audit.action.default.session_end",
+        "delete": "@:audit.action.default.delete"
+      },
       "form": {
         "update_draft_set": "Entwurf verfassen oder aktualisieren",
         "update_publish": "Entwurf veröffentlichen",
@@ -42,51 +90,59 @@
         "update": "@:audit.action.default.update",
         "delete": "@:audit.action.default.delete"
       },
+      "public_link": {
+        "assignment_create": "Zugriff erteilen",
+        "assignment_delete": "Zugriff entziehen",
+        "create": "@:audit.action.default.create",
+        "session_end": "@:audit.action.default.session_end",
+        "delete": "@:audit.action.default.delete"
+      },
       "upgrade": {
         "process_form": "Formular verarbeiten",
         "process_form_draft": "Formularentwurf verarbeiten"
       },
       "user": {
+        "assignment_create": "Rolle zuweisen",
+        "assignment_delete": "Rolle entziehen",
         "delete": "Abschalten",
         "create": "@:audit.action.default.create",
         "update": "@:audit.action.default.update"
-      },
-      "field_key": {
-        "create": "@:audit.action.default.create"
       },
       "project": {
         "create": "@:audit.action.default.create",
         "update": "@:audit.action.default.update",
         "delete": "@:audit.action.default.delete"
-      },
-      "public_link": {
-        "create": "@:audit.action.default.create"
-      },
-      "session": {
-        "end": "@:audit.action.default.delete"
       }
     }
   },
   "action": {
     "cancel": "Abbrechen",
+    "clear": "Löschen",
     "close": "Schließen",
+    "comment": "Kommentieren",
     "create": "Anlegen",
     "createSubmission": "Neu",
     "done": "Fertig",
     "download": "Herunterladen",
+    "edit": "Bearbeiten",
     "editProfile": "Profil bearbeiten",
     "logIn": "Einloggen",
     "looksGood": "Sieht gut aus, weiter",
+    "more": "Mehr",
     "neverMind": "Nein danke, abbrechen",
     "next": "Weiter",
     "noCancel": "Nein, abbrechen",
     "ok": "Okay",
     "proceed": "Fortfahren",
+    "refresh": "Aktualisieren",
     "resetPassword": "Passwort zurücksetzen",
+    "review": "Überprüfen",
     "save": "Speichern",
+    "update": "Aktualisieren",
     "yesProceed": "Ja, fortfahren"
   },
   "field": {
+    "comment": "Kommentieren...",
     "dateRange": "Zeitraum",
     "displayName": "Anzeigename",
     "email": "E-Mail-Adresse",
@@ -96,6 +152,7 @@
     "passphrase": "Passphrase",
     "password": "Passwort",
     "passwordConfirm": "Neues Passwort (bestätigen)",
+    "reviewState": "Überprüfungsstatus",
     "type": "Typ"
   },
   "header": {
@@ -104,8 +161,12 @@
     "createdBy": "Erstellt von",
     "displayName": "Anzeigename",
     "email": "E-Mail-Adresse",
+    "instanceId": "Instanz-ID",
     "lastSubmission": "Letzte Übermittlung",
     "name": "Name",
+    "submitterName": "Übermittelt von",
+    "submissionDate": "Übermittelt um",
+    "time": "Zeit",
     "type": "Typ"
   },
   "plural": {
@@ -123,13 +184,17 @@
   "resource": {
     "appUser": "App-Benutzer",
     "appUsers": "App-Benutzer",
+    "config": "Server-Konfiguration",
     "form": "Formular",
     "project": "Projekt",
+    "projects": "Projekte",
     "publicLink": "Öffentlicher Zugangslink",
     "user": "Benutzer",
     "webUser": "Web-Benutzer",
+    "webUsers": "Web-Benutzer",
     "session": "Sitzung",
-    "submissions": "Übermittlungen"
+    "submissions": "Übermittlungen",
+    "projectRoles": "Projektrollen"
   },
   "moreInfo": {
     "clickHere": {
@@ -142,15 +207,39 @@
     },
     "learnMore": "Erfahren Sie mehr."
   },
+  "submission": {
+    "missingMedia": "Fehlende Medien",
+    "action": {
+      "edit": "Bearbeiten ({count})"
+    },
+    "editDisabled": "Sie können verschlüsselte Übermittlungen nicht bearbeiten.",
+    "binaryLinkTitle": "Datei wurde übermittelt. Zum Downloaden klicken.",
+    "encryptionMessage": "Datenvorschau wegen Verschlüsselung nicht verfügbar"
+  },
   "common": {
+    "activity": "Aktivität",
+    "anybody": "(Jeder)",
     "areYouSure": "Wollen Sie wirklich fortfahren?",
+    "basicInfo": "Basis-Informationen",
     "currentDraft": "Ihr aktueller Entwurf",
     "dangerZone": "Gefahrenbereich",
+    "filter": "Filter",
     "no": "Nein",
     "noResults": "Keine Ergebnisse",
     "rightNow": "Aktuell",
     "success": "Das hat geklappt!",
-    "yes": "Ja"
+    "yes": "Ja",
+    "tab": {
+      "settings": "Einstellungen",
+      "overview": "Übersicht"
+    }
+  },
+  "mixin": {
+    "request": {
+      "alert": {
+        "fileSize": "Die Datei \"{name}\", die Sie versuchen hochzuladen ist größer als das 100 MB Limit."
+      }
+    }
   },
   "presenter": {
     "Form": {
@@ -168,7 +257,14 @@
     "request": {
       "noRequest": "Etwas ging schief: Wir haben keine Anfrage empfangen.",
       "noResponse": "Etwas ging schief: Wir haben keine Antwort auf Ihre Anfrage bekommen.",
-      "errorNotProblem": "Etwas ging schief: Der Server meldete eine ungültige Anfrage."
+      "errorNotProblem": "Etwas ging schief: Fehlercode {status}."
+    },
+    "session": {
+      "alert": {
+        "expiresSoon": "Ihre Sitzung läuft in 2 Minuten ab und Sie werden automatisch ausgeloggt.",
+        "expired": "Ihre Sitzung ist abgelaufen. Um weiterzuarbeiten, bitte erneut einloggen.",
+        "logoutError": "Es gab ein Problem und Sie wurden nicht vollständig ausgeloggt. Bitte die Seite aktualisieren und versuchen sich erneut einzuloggen. {message}"
+      }
     }
   },
   "router": {

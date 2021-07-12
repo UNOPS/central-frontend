@@ -2,16 +2,16 @@ import Vue from 'vue';
 import { last } from 'ramda';
 
 import App from '../../src/components/app.vue';
-import requestDataByComponent from './http/respond-for';
 import router from '../../src/router';
-import store from '../../src/store';
-import testData from '../data';
-import * as commonTests from './http/common';
-import { beforeEachNav } from './router';
-import { loadAsyncCache } from './async-components';
-import { mount as lifecycleMount } from './lifecycle';
 import { noop } from '../../src/util/util';
 import { routeProps } from '../../src/util/router';
+
+import requestDataByComponent from './http/data';
+import testData from '../data';
+import * as commonTests from './http/common';
+import { loadAsyncCache } from './async-components';
+import { mockAxiosResponse } from './axios';
+import { mount as lifecycleMount } from './lifecycle';
 import { wait, waitUntil } from './util';
 
 
@@ -23,11 +23,15 @@ import { wait, waitUntil } from './util';
 export const setHttp = (respond) => {
   const http = (config) => respond(config);
   http.request = http;
-  http.get = (url, config) => http({ ...config, method: 'get', url });
-  http.post = (url, data, config) => http({ ...config, method: 'post', url, data });
-  http.put = (url, data, config) => http({ ...config, method: 'put', url, data });
-  http.patch = (url, data, config) => http({ ...config, method: 'patch', url, data });
-  http.delete = (url, config) => http({ ...config, method: 'delete', url });
+  http.get = (url, config) => http({ ...config, method: 'GET', url });
+  http.post = (url, data, config) => {
+    const full = { ...config, method: 'POST', url };
+    if (data != null) full.data = data;
+    return http(full);
+  };
+  http.put = (url, data, config) => http({ ...config, method: 'PUT', url, data });
+  http.patch = (url, data, config) => http({ ...config, method: 'PATCH', url, data });
+  http.delete = (url, config) => http({ ...config, method: 'DELETE', url });
   http.defaults = {
     headers: {
       common: {}
@@ -39,10 +43,10 @@ export const setHttp = (respond) => {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// mockHttp(), mockRoute(), load()
+// mockHttp() and load()
 
 /*
-MockHttp mocks a series of request-response cycles. It allows you to mount a
+mockHttp() mocks a series of request-response cycles. It allows you to mount a
 component, specify one or more requests, then examine the component once the
 responses to the requests have been processed.
 
@@ -50,39 +54,34 @@ First, specify a component to mount. Some components will send a request after
 being mounted, for example:
 
   mockHttp()
-    .mount(AuditList, { router });
+    .mount(AuditList)
 
 Other components will not send a request. Specify a request after mounting the
 component:
 
-  mockLogin();
   mockHttp()
     // Mounting AccountResetPassword does not send a request.
-    .mount(AccountResetPassword, { router })
+    .mount(AccountResetPassword)
     // Sends a POST request.
-    .request(component => submitForm(component, 'form', [
+    .request(trigger.submit('form', [
       ['input[type="email"]', 'example@getodk.org']
-    ]));
+    ]))
 
 After specifying the request, specify the response as a callback:
 
   mockHttp()
-    .mount(AuditList, { router })
-    .respondWithData(() => testData.extendedAudits.sorted());
+    .mount(AuditList)
+    .respondWithData(() => testData.extendedAudits.sorted())
 
 Sometimes, mount() and/or request() will send more than one request. Simply
 specify all the responses, in order of the request:
 
+  mockLogin();
+  testData.extendedProjects.createPast(3);
   mockHttp()
-    .mount(App, { router })
-    .request(component => submitForm(component, '#account-login form', [
-      ['input[type="email"]', 'example@getodk.org'],
-      ['input[type="password"]', 'password']
-    ]))
-    .respondWithData(() => testData.sessions.createNew())
-    .respondWithData(() => testData.extendedUsers
-      .createPast(1, { email: 'example@getodk.org' })
-      .last());
+    .mount(ProjectList)
+    .respondWithData(() => testData.extendedProjects.sorted())
+    .respondWithData(() => testData.standardUsers.sorted());
 
 In rare cases, you may know that mount() and/or request() will not send any
 request. In that case, simply do not specify a response. What is important is
@@ -91,12 +90,14 @@ that the number of requests matches the number of responses.
 After specifying the requests and responses, you can examine the state of the
 component once the responses have been processed:
 
+  mockLogin();
+  testData.extendedProjects.createPast(3);
   mockHttp()
-    .mount(ProjectList, { router })
-    .respondWithData(() => testData.extendedProjects.createPast(3).sorted())
+    .mount(ProjectList)
+    .respondWithData(() => testData.extendedProjects.sorted())
     .respondWithData(() => testData.standardUsers.sorted())
     .afterResponses(component => {
-      component.find('#project-list-table tbody tr').length.should.equal(3);
+      component.find(ProjectRow).length.should.equal(3);
     });
 
 It is not until afterResponses() that the component is actually mounted and the
@@ -106,21 +107,23 @@ its own callback, thereby completing the series of request-response cycles.
 
 In other words, using mockHttp() involves two phases:
 
-  1. Setup. Specify the series of request-response cycles, as well as some
-     hooks, such as beforeAnyResponse() and beforeEachNav(). As a precaution,
-     many setup methods will throw an error if they are called more than once.
+  1. Setup. Specify the series of request-response cycles, as well as any hooks
+     to run before the responses. As a precaution, many setup methods will throw
+     an error if they are called more than once.
   2. Execution. Once you specify a hook to run after the responses, the series
      of request-response cycles is kicked off.
 
 afterResponses() returns a thenable, which usually is ultimately returned to
 Mocha. You can call then(), catch(), or finally() on the thenable:
 
+  mockLogin();
+  testData.extendedProjects.createPast(3);
   mockHttp()
-    .mount(ProjectList, { router })
-    .respondWithData(() => testData.extendedProjects.createPast(3).sorted())
+    .mount(ProjectList)
+    .respondWithData(() => testData.extendedProjects.sorted())
     .respondWithData(() => testData.standardUsers.sorted())
     .afterResponses(component => {
-      component.find('#project-list-table tbody tr').length.should.equal(3);
+      component.find(ProjectRow).length.should.equal(3);
     })
     .then(() => {
       console.log('table has 3 rows');
@@ -132,25 +135,22 @@ Mocha. You can call then(), catch(), or finally() on the thenable:
 Alternatively, you can follow the series with a new series of request-response
 cycles: series can be chained. For example:
 
+  mockLogin();
+  testData.extendedAudits.createPast(1, {
+    actor: testData.extendedUsers.first(),
+    action: 'user.create',
+    actee: testData.toActor(testData.extendedUsers.first())
+  });
   mockHttp()
-    .mount(App, { router })
-    .request(component => submitForm(component, '#account-login form', [
-      ['input[type="email"]', 'example@getodk.org'],
-      ['input[type="password"]', 'password']
-    ]))
-    .respondWithData(() => testData.sessions.createNew())
-    .respondWithData(() => testData.extendedUsers
-      .createPast(1, { email: 'example@getodk.org' })
-      .last())
-    .respondWithData(() => testData.extendedProjects.createPast(3).sorted())
-    .respondWithData(() => testData.standardUsers.sorted())
+    .mount(AuditList)
+    .respondWithData(() => testData.extendedAudits.sorted())
     .afterResponses(component => {
-      component.find('#project-list-table tbody tr').length.should.equal(3);
+      component.find(AuditRow).length.should.equal(1);
     })
-    .request(component => trigger.click(component, '#navbar-links-users'))
-    .respondWithData(() => testData.standardUsers.sorted())
+    .request(trigger.changeValue('#audit-filters-action select', 'user.delete'))
+    .respondWithData(() => [])
     .afterResponses(component => {
-      component.find('#user-list-table tbody tr').length.should.equal(1);
+      component.find(AuditRow).length.should.equal(0);
     });
 
 Notice how the mounted component is passed to each request() and
@@ -158,15 +158,110 @@ afterResponses() callback, even in the second series.
 
 In some cases, you may need multiple series of request-response cycles, yet do
 not need to assert something in each series. In that case, use complete(), which
-is a shortcut for `afterResponses(component => component)`. Because it calls
+is a shortcut for afterResponses(component => component). Because it calls
 afterResponses(), complete() will also execute the series.
 
-If you are testing a single page, you can usually use mockHttp(). However, if a
-test changes the current route, or if the page uses <router-link>, you should
-use mockRoute().
+Using the router
+----------------
 
-There is a lot you can do with mockHttp(), and you can learn more by reviewing
-the comments above each method below.
+If a test uses the router, for example, if a component uses <router-link>,
+specify the initial location, then pass the router to mount():
+
+  mockLogin();
+  testData.extendedProjects.createPast(3);
+  mockHttp()
+    .route('/')
+    .mount(ProjectList, { router })
+    .respondWithData(() => testData.extendedProjects.sorted())
+    .respondWithData(() => testData.standardUsers.sorted());
+
+If a test will change the route, mount the App component. After the initial
+navigation, you can navigate to a new location. If doing so will send requests,
+also specify the responses. For example:
+
+  mockLogin();
+  testData.extendedProjects.createPast(3);
+  mockHttp()
+    .route('/')
+    .mount(App, { router })
+    .respondWithData(() => testData.extendedProjects.sorted())
+    .respondWithData(() => testData.standardUsers.sorted())
+    .complete()
+    .route('/system/audits')
+    .respondWithData(() => testData.extendedAudits.sorted());
+
+If navigating to the new location will not send a request, you can specify both
+route() and request(). In that case, the request() callback will be run after a
+navigation is confirmed.
+
+A shortcut for specifying responses
+-----------------------------------
+
+Specifying responses can lead to repetitive code. As a shortcut, call load()
+with a location to automatically specify the responses for the route. For
+example, instead of:
+
+  mockHttp()
+    .route('/')
+    .mount(App, { router })
+    .respondWithData(() => testData.extendedProjects.sorted())
+    .respondWithData(() => testData.standardUsers.sorted())
+
+you can call:
+
+  load('/')
+
+You can also call load() to change the route and specify the responses for the
+new route:
+
+  mockLogin();
+  testData.extendedProjects.createPast(3);
+  load('/')
+    .complete()
+    .load('/system/audits')
+
+/test/util/http/data.js maps each route to its responses.
+
+Common load() options
+---------------------
+
+By default, load() mounts App and specifies responses. However, you can also
+choose not to mount App or not to specify responses.
+
+If a test will change the route, then it should mount App. However, if a test
+won't change the route and doesn't otherwise need to mount App, then it can
+simply mount the component associated with the route. For example,
+
+  load('/', { root: false })
+
+is equivalent to:
+
+  mockHttp()
+    .route('/')
+    .mount(ProjectList, { router })
+    .respondWithData(() => testData.extendedProjects.sorted())
+    .respondWithData(() => testData.standardUsers.sorted())
+
+Although it is rarely necessary, it is also possible not to specify responses.
+For example,
+
+  load('/', {}, false)
+
+is equivalent to:
+
+  mockHttp()
+    .route('/')
+    .mount(App, { router })
+
+A component may send a request but not be associated with a route, for example,
+many modals. To test a component like that, use mockHttp(), or use load() to
+mount the component's parent component.
+
+Additional options
+------------------
+
+There is a lot you can do with mockHttp() and load(). You can learn more by
+reviewing the comments above each method below.
 */
 
 let inProgress = false;
@@ -187,7 +282,6 @@ class MockHttp {
     // previousPromise is used to chain series.
     previousPromise = null,
     location = null,
-    beforeEachNavGuard = null,
     mount = null,
     request = null,
     // Array of response callbacks
@@ -197,7 +291,6 @@ class MockHttp {
   } = {}) {
     this._previousPromise = previousPromise;
     this._location = location;
-    this._beforeEachNavGuard = beforeEachNavGuard;
     this._mount = mount;
     this._request = request;
     this._responses = responses;
@@ -209,7 +302,6 @@ class MockHttp {
     return new MockHttp({
       previousPromise: this._previousPromise,
       location: this._location,
-      beforeEachNavGuard: this._beforeEachNavGuard,
       mount: this._mount,
       request: this._request,
       responses: this._responses,
@@ -222,31 +314,13 @@ class MockHttp {
   modify(f) { return f(this); }
 
   //////////////////////////////////////////////////////////////////////////////
-  // ROUTER NAVIGATION
+  // REQUESTS
 
-  /* In addition to mounting a component with mount() and specifying one or more
-  requests with request(), you can change the current route by specifying
-  route(). This mocks the behavior of the user navigating to a different route.
-  route() is called before request(). If changing the route results in a
-  request, do not specify request() in the same series. Instead, specify
-  request() in a chained series. */
   route(location) {
     if (this._location != null)
       throw new Error('cannot call route() more than once in a single series');
     return this._with({ location });
   }
-
-  beforeEachNav(callback) {
-    if (this._beforeEachNavGuard != null)
-      throw new Error('cannot call beforeEachNav() more than once in a single chain');
-    // When we run the callback later, we do not want it to be bound to the
-    // MockHttp.
-    const beforeEachNavGuard = callback.bind(null);
-    return this._with({ beforeEachNavGuard });
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-  // OTHER REQUESTS
 
   mount(component, options = undefined) {
     if (this._mount != null)
@@ -272,17 +346,7 @@ class MockHttp {
     return this._with({
       responses: [
         ...this._responses,
-        () => {
-          const result = callback();
-          const { problem } = result;
-          if (problem == null) return { status: 200, data: result };
-          if (typeof problem === 'object')
-            return { status: Math.floor(problem.code), data: problem };
-          return {
-            status: Math.floor(problem),
-            data: { code: problem, message: 'There was a problem.' }
-          };
-        }
+        (config) => mockAxiosResponse(callback(), config)
       ]
     });
   }
@@ -296,13 +360,10 @@ class MockHttp {
 
   restoreSession(restore) {
     if (!restore) return this.respondWithProblem(404.1);
+    if (testData.extendedUsers.size === 0) throw new Error('user not found');
     return this
       .respondWithData(() => testData.sessions.createNew())
-      .respondWithData(() => {
-        if (testData.extendedUsers.size !== 0)
-          throw new Error('user already exists');
-        return testData.extendedUsers.createPast(1, { role: 'admin' }).last();
-      });
+      .respondWithData(() => testData.extendedUsers.first());
   }
 
   // respondForComponent() responds with all the responses expected for the
@@ -439,21 +500,11 @@ class MockHttp {
     if (typeof optionsOrCallback === 'function')
       return this.afterResponses({ callback: optionsOrCallback });
     const { callback, pollWork = undefined } = optionsOrCallback;
-    if (this._location == null && this._mount == null && this._request == null)
-      throw new Error('route(), mount(), and/or request() required');
     const promise = this._initialPromise()
-      .then(() => {
-        if (this._beforeEachNavGuard == null) return;
-        beforeEachNav((to, from) => {
-          this._tryBeforeEachNav(to, from);
-        });
-      })
       .then(() => this._navigateAndMount())
       // If both this.route() and this.request() were specified, then wait for
       // any async components associated with the route to load.
-      .then(() => (this._location && this._request != null
-        ? wait()
-        : undefined))
+      .then(this._location && this._request != null ? wait : noop)
       .then(() => {
         if (this._request == null) return undefined;
         this._checkStateBeforeRequest();
@@ -461,14 +512,19 @@ class MockHttp {
       })
       // Wait for any responses to be processed.
       .finally(wait)
-      .finally(() => (pollWork != null
-        ? waitUntil(() => pollWork(this._component))
-        : undefined))
-      .finally(() => this._restoreHttp())
+      .finally(pollWork != null
+        ? () => waitUntil(() => pollWork(this._component))
+        : noop)
+      .finally(() => {
+        if (this._previousHttp != null)
+          Vue.prototype.$http = this._previousHttp;
+      })
       .then(() => this._checkStateAfterWait())
       .then(() => callback(this._component))
       .then(result => ({ component: this._component, result }))
-      .finally(() => this._cleanUpAfterResponses());
+      .finally(() => {
+        inProgress = false;
+      });
     return new MockHttp({ previousPromise: promise });
   }
 
@@ -492,8 +548,6 @@ class MockHttp {
       // issues.
       if (inProgress) throw new Error('another series is in progress');
       inProgress = true;
-      this._inProgress = true;
-      this._errorFromBeforeEachNav = null;
       this._previousHttp = Vue.prototype.$http;
       setHttp(this._http());
       this._component = component;
@@ -512,11 +566,10 @@ class MockHttp {
       comes after the hook.
 
       It is because the second promise is returned to Frontend and not Mocha
-      that _tryBeforeEachNav(), _tryBeforeAnyResponse(), and
-      _tryBeforeEachResponse() catch any error even though they are called
-      within a promise chain. Those methods catch and store any error so that
-      the after responses hook is able to reject the first promise if something
-      unexpected happens in the second promise.
+      that _tryBeforeAnyResponse() and _tryBeforeEachResponse() catch any error
+      even though they are called within a promise chain. Those methods catch
+      and store any error so that the after responses hook is able to reject the
+      first promise if something unexpected happens in the second promise.
       */
       this._responsesPromise = Promise.resolve();
       this._errorFromBeforeAnyResponse = null;
@@ -560,20 +613,23 @@ class MockHttp {
         .then(() => new Promise((resolve, reject) => {
           let response;
           try {
-            response = responseCallback();
+            response = responseCallback(config);
           } catch (e) {
             if (this._errorFromResponse == null) this._errorFromResponse = e;
             reject(e);
             return;
           }
-          this._requestResponseLog.push(response);
-          const responseWithConfig = { ...response, config };
+
+          const withoutConfig = { ...response };
+          delete withoutConfig.config;
+          this._requestResponseLog.push(withoutConfig);
+
           if (response.status >= 200 && response.status < 300) {
-            resolve(responseWithConfig);
+            resolve(response);
           } else {
             const error = new Error();
             error.request = {};
-            error.response = responseWithConfig;
+            error.response = response;
             reject(error);
           }
         }));
@@ -607,39 +663,20 @@ class MockHttp {
       });
   }
 
-  _tryBeforeEachNav(to, from) {
-    // The current series' beforeEachNav() guard will be in place until the end
-    // of the test, not just the end of the series. If the current series is
-    // followed by another series, we need to deactivate the current series'
-    // guard during the following series. To do so, we check this._inProgress,
-    // which will be false during the following series.
-    if (!this._inProgress) return;
-    if (this._errorFromBeforeEachNav != null) return;
-    try {
-      this._beforeEachNavGuard(this._component, to, from);
-    } catch (e) {
-      this._errorFromBeforeEachNav = e;
-    }
-  }
-
   _navigate() {
     return new Promise(resolve => {
-      router.push(
-        this._location,
-        resolve,
-        // The router.push() onAbort callback seems to be called if the user is
-        // redirected after the navigation to this._location, even though the
-        // redirection will ultimately lead to a confirmed navigation.
-        () => waitUntil(() => store.state.router.lastNavigationWasConfirmed)
-          .then(resolve)
-      );
+      const removeGuard = router.afterEach(() => {
+        removeGuard();
+        resolve();
+      });
+      router.push(this._location).catch(noop);
     });
   }
 
   _navigateAndMount() {
     if (this._location != null && this._mount != null) {
       // If both this.route() and this.mount() were specified, then this is the
-      // initial navigation. In that case, we trigger the navigation, then mount
+      // first navigation. In that case, we trigger the navigation, then mount
       // the component without waiting for a confirmed navigation, matching what
       // happens in production.
       const promise = this._navigate();
@@ -652,7 +689,7 @@ class MockHttp {
   }
 
   _checkStateBeforeRequest() {
-    /* this.route() and this.mount() are allowed to result in requests, but if
+    /* this.mount() and this.route() are allowed to result in requests, but if
     they do, no request callback should be specified. We check for that case by
     examining this._requestResponseLog, which will have an entry if there has
     been a request already. (Note, however, that the response to the request
@@ -664,6 +701,7 @@ class MockHttp {
   }
 
   /* eslint-disable no-console */
+
   _listRequestResponseLog() {
     console.log('request/response log for the last series executed:');
     if (this._requestResponseLog.length === 0) {
@@ -673,22 +711,8 @@ class MockHttp {
         console.log(entry);
     }
   }
-  /* eslint-enable no-console */
 
-  _restoreHttp() {
-    // If this._previousPromise was rejected, the current series did not set
-    // $http, and we do not need to restore it. We can check for that case by
-    // examining this._inProgress, which will be falsy if this._previousPromise
-    // was rejected.
-    if (this._inProgress) Vue.prototype.$http = this._previousHttp;
-  }
-
-  /* eslint-disable no-console */
   _checkStateAfterWait() {
-    if (this._errorFromBeforeEachNav != null) {
-      console.error(this._errorFromBeforeEachNav);
-      throw new Error('beforeEachNav() callback threw an error');
-    }
     if (this._errorFromBeforeAnyResponse != null) {
       console.error(this._errorFromBeforeAnyResponse);
       throw new Error('beforeAnyResponse() callback threw an error');
@@ -709,21 +733,14 @@ class MockHttp {
         throw new Error('response without request: not all responses were requested');
     }
   }
+
   /* eslint-enable no-console */
-
-  _cleanUpAfterResponses() {
-    this._inProgress = false;
-    inProgress = false;
-  }
-
-
 
   //////////////////////////////////////////////////////////////////////////////
   // PROMISE METHODS
 
   toPromise() {
-    const anySetup = this._location != null ||
-      this._beforeEachNavGuard != null || this._mount != null ||
+    const anySetup = this._location != null || this._mount != null ||
       this._request != null || this._responses.length !== 0 ||
       this._beforeAnyResponse != null || this._beforeEachResponse != null;
     if (!anySetup && this._previousPromise == null) return Promise.resolve();
@@ -743,66 +760,75 @@ class MockHttp {
 Object.assign(MockHttp.prototype, commonTests);
 
 export const mockHttp = () => new MockHttp();
-export const mockRoute = (location, mountOptions = undefined) => mockHttp()
-  .mount(App, { ...mountOptions, router })
-  .route(location);
 
-// Mounts the component for the bottom-level route matching `location`, setting
-// propsData and requestData and responding to requests that the component
-// sends. This is useful for tests that don't use the router or otherwise need
-// to mount App.
-const mockHttpForBottomComponent = (
-  location,
-  mountOptions,
-  respondForOptions
-) => {
+// Mounts the component associated with the bottom-level route matching
+// `location`, setting propsData. If respondForOptions is not `false`, it will
+// also set requestData and respond to the initial requests that the component
+// sends.
+const loadBottomComponent = (location, mountOptions, respondForOptions) => {
   const { route } = router.resolve(location);
   const components = routeComponents(route);
   const bottomComponent = last(components);
 
-  const mountOptionsWithData = { ...mountOptions };
+  const fullMountOptions = { ...mountOptions, router };
 
   const bottomRouteRecord = last(route.matched);
   const props = routeProps(route, bottomRouteRecord.props.default);
-  mountOptionsWithData.propsData = bottomRouteRecord.meta.asyncRoute == null
+  fullMountOptions.propsData = bottomRouteRecord.meta.asyncRoute == null
     ? props
     : props.props;
 
-  const requestData = {};
-  for (let i = 0; i < components.length - 1; i += 1) {
-    for (const [key, callback] of requestDataByComponent(components[i].name)) {
-      const option = respondForOptions != null ? respondForOptions[key] : null;
-      requestData[key] = option != null
-        ? (typeof option === 'number' ? { problem: option } : option())
-        : callback();
+  if (respondForOptions !== false) {
+    const requestData = {};
+    for (let i = 0; i < components.length - 1; i += 1) {
+      for (const [key, callback] of requestDataByComponent(components[i].name)) {
+        const option = respondForOptions != null
+          ? respondForOptions[key]
+          : null;
+        requestData[key] = option != null
+          ? (typeof option === 'number' ? { problem: option } : option())
+          : callback();
+      }
     }
+    fullMountOptions.requestData = requestData;
   }
-  mountOptionsWithData.requestData = requestData;
 
   return mockHttp()
-    .mount(bottomComponent, mountOptionsWithData)
-    .respondForComponent(bottomComponent, respondForOptions);
+    .route(location)
+    .mount(bottomComponent, fullMountOptions)
+    .modify(series => (respondForOptions !== false
+      ? series.respondForComponent(bottomComponent, respondForOptions)
+      : series));
 };
+
 export const load = (
   location,
   mountOptions = undefined,
   respondForOptions = undefined
 ) => {
-  // Prevent the user from accidentally specifying respondForOptions without
+  // Check whether the user has specified respondForOptions without
   // mountOptions.
-  if (mountOptions != null && respondForOptions == null)
-    throw new Error('specify either both sets of options or neither');
-
-  if (mountOptions != null && mountOptions.component === true) {
-    const optionsWithoutComponent = { ...mountOptions };
-    delete optionsWithoutComponent.component;
-    return mockHttpForBottomComponent(
-      location,
-      optionsWithoutComponent,
-      respondForOptions
-    );
+  if (mountOptions != null && respondForOptions == null) {
+    for (const value of Object.values(mountOptions)) {
+      const type = typeof value;
+      if (type === 'function' || type === 'number')
+        throw new Error('invalid mount option');
+    }
   }
 
-  return mockRoute(location, mountOptions)
-    .respondFor(location, respondForOptions);
+  if (mountOptions != null && mountOptions.root === false) {
+    const { root, ...optionsWithoutRoot } = mountOptions;
+    return loadBottomComponent(location, optionsWithoutRoot, respondForOptions);
+  }
+
+  return mockHttp()
+    .route(location)
+    .mount(App, { ...mountOptions, router })
+    .modify(series => (respondForOptions !== false
+      ? series.respondFor(location, respondForOptions)
+      : series));
 };
+
+// Deprecated
+export const mockRoute = (location, mountOptions = undefined) =>
+  load(location, mountOptions, false);

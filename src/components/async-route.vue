@@ -130,6 +130,11 @@ export default {
       "loadError": "Požadovanou stránku nelze načíst. Zkontrolujte, zda jste online, a zkuste to znovu."
     }
   },
+  "de": {
+    "alert": {
+      "loadError": "Die Seite, die Sie angefordert haben, konnte nicht geladen werden. Bitte prüfen Sie, ob Sie online sind und versuchen es erneut."
+    }
+  },
   "es": {
     "alert": {
       "loadError": "No se pudo cargar la página solicitada. Comprueba que estás en línea y vuelve a intentarlo."
@@ -138,6 +143,16 @@ export default {
   "fr": {
     "alert": {
       "loadError": "La page demandée n'a pas pu être chargée. Veuillez vérifier que vous êtes en ligne et essayez encore."
+    }
+  },
+  "id": {
+    "alert": {
+      "loadError": "Laman yang kamu minta tidak dapat dimuat. Coba periksa kondisi daring dan coba lagi."
+    }
+  },
+  "ja": {
+    "alert": {
+      "loadError": "リクエストされたページを読み込むことができませんでした。オンラインであることを確認して、もう一度試みて下さい。"
     }
   }
 }

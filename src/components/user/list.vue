@@ -305,6 +305,23 @@ export default {
       "resetPassword": "Kata sandi untuk \"{displayName}\" sudah tidak berlaku. Sebuah email tetang instruksi selanjutnya telah dikirimkan ke {email}.",
       "retire": "Pengguna {displayName} telah berhenti."
     }
+  },
+  "ja": {
+    "action": {
+      "create": "Webユーザーの作成"
+    },
+    "heading": [
+      "Webユーザーは、このサーバー上のプロジェクトを監督・管理するアカウントを保有します。管理者は、サイト内の全てを管理できます。プロジェクトの設定から「サーバーでの役割」が無いユーザーに対して、任意のプロジェクトの役割を付与できます。サーバーの管理者と一部のプロジェクトでの役割を持つ者は、Webブラウザーを使ってフォームを入力できます。{collect}などのアプリでデータを送信する場合は、プロジェクトごとにアプリユーザーを作成して下さい。"
+    ],
+    "header": {
+      "sitewideRole": "サーバーでの役割"
+    },
+    "alert": {
+      "create": "ユーザー\"{displayName}\"の作成に成功しました。",
+      "assignRole": "成功です！\"{displayName}\"はサーバーでの役割\"{roleName}\"を与えられました。",
+      "resetPassword": "\"{displayName}\"のパスワードが無効です。{email}宛に、今後の対応についての手続き方法を記載したメールが送信されました。",
+      "retire": "ユーザー\"{displayName}\"を除外しました。"
+    }
   }
 }
 </i18n>

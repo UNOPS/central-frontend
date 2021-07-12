@@ -2,6 +2,7 @@ import * as Actors from './actors';
 import * as Assignments from './assignments';
 import * as Audits from './audits';
 import * as BackupsConfigs from './backups-configs';
+import * as Comments from './comments';
 import * as FieldKeys from './field-keys';
 import * as Fields from './fields';
 import * as FormAttachments from './form-attachments';
@@ -16,12 +17,13 @@ import * as Users from './users';
 import seed from './seed';
 import { resetDataStores } from './data-store';
 
-const testData = Object.assign(
+const testData = Object.assign( // eslint-disable-line prefer-object-spread
   {},
   Actors,
   Assignments,
   Audits,
   BackupsConfigs,
+  Comments,
   FieldKeys,
   Fields,
   FormAttachments,

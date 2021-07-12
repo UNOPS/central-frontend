@@ -214,6 +214,25 @@ export default {
         "dataCollector": "Pengumpul Data"
       }
     ]
+  },
+  "ja": {
+    "title": "フォーム提出方法の選択肢",
+    "introduction": [
+      "ODK Centralへのデータ提出方法にはいくつかの選択肢があります。",
+      {
+        "full": "{appUsers}を作成し、Androidアプリの{collect}を使用して下さい。この方法は、データ収集者が複数のフォームにアクセスする必要がある場合や、オフラインである場合、複雑なフォームを持っている場合などに最適です",
+        "appUsers": "アプリユーザー"
+      },
+      {
+        "full": "１つ以上の{publicLinks}を作成し、回答者と共有する。回答者は自身でフォームに入力し、提出する。",
+        "publicLinks": "一般公開リンク"
+      },
+      {
+        "full": "データを収集する各個人に、{dataCollector}の役割を持つ{webUser}を作成します。これらのユーザーはCentralにログインし、Webブラウザでこのフォームに入力します。プロジェクトマネージャーもブラウザ経由でフォームが提出できます。",
+        "webUser": "Webユーザー",
+        "dataCollector": "データ収集者"
+      }
+    ]
   }
 }
 </i18n>

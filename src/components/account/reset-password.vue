@@ -14,7 +14,7 @@ except according to the terms contained in the LICENSE file.
     <div class="col-xs-12 col-sm-offset-3 col-sm-6">
       <div class="panel panel-default panel-main">
         <div class="panel-heading">
-          <h1 class="panel-title">{{ $t('title') }}</h1>
+          <h1 class="panel-title">{{ $t('title.resetPassword') }}</h1>
         </div>
         <div class="panel-body">
           <form @submit.prevent="submit">
@@ -25,9 +25,10 @@ except according to the terms contained in the LICENSE file.
                 :disabled="awaitingResponse">
                 {{ $t('action.resetPassword') }} <spinner :state="awaitingResponse"/>
               </button>
-              <router-link to="/login" tag="button" type="button"
-                class="btn btn-link">
-                {{ $t('action.cancel') }}
+              <router-link v-slot="{ navigate }" to="/login" custom>
+                <button type="button" class="btn btn-link" @click="navigate">
+                  {{ $t('action.cancel') }}
+                </button>
               </router-link>
             </div>
           </form>
@@ -60,11 +61,12 @@ export default {
     submit() {
       this
         .post('/users/reset/initiate', { email: this.email })
-        .then(() => this.$router.push('/login', () => {
+        .then(() => this.$router.push('/login'))
+        .then(() => {
           this.$alert().success(this.$t('alert.success', {
             email: this.email
           }));
-        }))
+        })
         .catch(noop);
     }
   }
@@ -74,8 +76,6 @@ export default {
 <i18n lang="json5">
 {
   "en": {
-    // This is a title shown above a section of the page.
-    "title": "Reset Password",
     "alert": {
       "success": "An email has been sent to {email} with further instructions."
     }
@@ -87,33 +87,33 @@ export default {
 <i18n>
 {
   "cs": {
-    "title": "Obnovit heslo",
     "alert": {
       "success": "Byl odeslán e-mail na {email} s dalšími pokyny."
     }
   },
   "de": {
-    "title": "Passwort zurücksetzen",
     "alert": {
       "success": "Eine E-Mail mit weiteren Anweisungen wurde an {email} gesendet."
     }
   },
   "es": {
-    "title": "Restablecer contraseña",
     "alert": {
       "success": "Se ha enviado un correo electrónico {email} con más instrucciones"
     }
   },
   "fr": {
-    "title": "Réinitialiser le mot de passe",
     "alert": {
       "success": "Un courriel a été envoyé à {email} avec de plus amples instructions"
     }
   },
   "id": {
-    "title": "Atur Ulang Kata Sandi",
     "alert": {
       "success": "Email sudah dikirimkan ke {email} dengan instruksi lebih lanjut."
+    }
+  },
+  "ja": {
+    "alert": {
+      "success": "{email}に詳細の対応についての情報が記されたメールが送信されました。"
     }
   }
 }

@@ -36,13 +36,17 @@ except according to the terms contained in the LICENSE file.
           <p>
             <span class="icon-check-circle"></span>
             <strong>{{ $t('common.success') }}</strong>
-            {{ $t('success[0]', created) }}
+            <sentence-separator/>
+            <span>{{ $t('success[0]', created) }}</span>
           </p>
           <field-key-qr-panel :field-key="created" :managed="managed"/>
           <p>{{ $t('success[1]', created) }}</p>
           <i18n tag="p" path="success[2].full">
             <template #formAccessSettings>
-              <a :href="projectPath('form-access')" @click.prevent="navigateToFormAccess">{{ $t('success[2].formAccessSettings') }}</a>
+              <router-link v-slot="{ href, navigate }"
+                :to="projectPath('form-access')" custom>
+                <a :href="href" @click="navigateToFormAccess(navigate, $event)">{{ $t('success[2].formAccessSettings') }}</a>
+              </router-link>
             </template>
           </i18n>
         </div>
@@ -64,6 +68,7 @@ import FormGroup from '../form-group.vue';
 import Spinner from '../spinner.vue';
 import Modal from '../modal.vue';
 import FieldKeyQrPanel from './qr-panel.vue';
+import SentenceSeparator from '../sentence-separator.vue';
 
 import FieldKey from '../../presenters/field-key';
 import request from '../../mixins/request';
@@ -74,7 +79,7 @@ import { requestData } from '../../store/modules/request';
 
 export default {
   name: 'FieldKeyNew',
-  components: { FormGroup, Spinner, Modal, FieldKeyQrPanel },
+  components: { FormGroup, Spinner, Modal, FieldKeyQrPanel, SentenceSeparator },
   mixins: [request(), routes()],
   props: {
     state: {
@@ -136,10 +141,10 @@ export default {
       else
         this.complete();
     },
-    navigateToFormAccess() {
+    navigateToFormAccess(navigate, event) {
       // Clear fieldKeys so that the Form Access tab will fetch it again.
       this.$store.commit('clearData', 'fieldKeys');
-      this.$router.push(this.projectPath('form-access'));
+      navigate(event);
     },
     createAnother() {
       this.step = 0;
@@ -219,6 +224,14 @@ export default {
     "introduction": [
       "Der Benutzer hat zunächst keinen Zugriff auf Formulare. Sie können seinen Zugriff auf Formulare später erstellen."
     ],
+    "success": [
+      "Der App-Benutzer \"{displayName}\" ist erstellt worden.",
+      "Sie können jetzt ein mobiles Gerät für \"{displayName}\" konfigurieren oder Sie können es später in der App-Benutzer-Tabelle durch Klick auf \"Code anzeigen.\"",
+      {
+        "full": "Sie können dem Benutzer jetzt auf der Seite {formAccessSettings} Zugriff zu den Formularen geben.",
+        "formAccessSettings": "Einstellungen Formular-Zugriff"
+      }
+    ],
     "action": {
       "createAnother": "Noch einen erstellen"
     }
@@ -245,6 +258,14 @@ export default {
     "introduction": [
       "Cet utilisateur n'aura accès à aucun formulaire dans un premier temps. Vous pourrez lui en assigner quand il aura été créé."
     ],
+    "success": [
+      "L'utilisateur mobile “{displayName}” a été créé.",
+      "Vous pouvez configurer un appareil mobile pour “{displayName}” dés maintenant, ou vous pouvez le faire plus tard depuis le tableau des \"Utilisateurs mobiles\" en cliquant sur \"Voir le code\".",
+      {
+        "full": "Vous pourriez vouloir visiter les {formAccessSettings} de ce projet pour donner accès aux formulaires à cet utilisateur.",
+        "formAccessSettings": "Paramètres d'accès aux formulaires"
+      }
+    ],
     "action": {
       "createAnother": "En créer un autre"
     }
@@ -254,8 +275,33 @@ export default {
     "introduction": [
       "Pengguna ini belum bisa mengakses formulir apapun. Anda bisa membagikan formulir setelah akun Pengguna dibuat."
     ],
+    "success": [
+      "Pengguna Aplikasi \"{displayName}\" telah dibuat.",
+      "Kamu bisa mengkonfigurasi peranti seluler untuk “{displayName}” saat ini juga, atau bisa lain waktu melalui tabel Pengguna Apl dengan mengklik “Lihat kode.”",
+      {
+        "full": "Anda mungkin ingin mengunjungi {formAccessSettings} proyek ini untuk memberikan Pengguna ini akses formulir.",
+        "formAccessSettings": "pengaturan Akses Formulir"
+      }
+    ],
     "action": {
       "createAnother": "Buat baru"
+    }
+  },
+  "ja": {
+    "title": "アプリユーザーの作成",
+    "introduction": [
+      "作成されるユーザーは、初期状態ではいずれのフォームにもアクセスできません。ユーザー作成後に、フォームを割り当てることができます。"
+    ],
+    "success": [
+      "アプリユーザー\"{displayName}\"が、作成されました。",
+      "「{displayName}」に対するモバイル端末を今すぐ設定できます。もしくは、アプリユーザーの一覧から「QRコードを表示」をクリックすることで後で設定も可能です。",
+      {
+        "full": "このプロジェクトの\"{formAccessSettings}\"にて、フォームに対するユーザーのアクセス権限を付与できます。",
+        "formAccessSettings": "フォームアクセスの設定"
+      }
+    ],
+    "action": {
+      "createAnother": "別のものを作成"
     }
   }
 }

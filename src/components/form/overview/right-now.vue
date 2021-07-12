@@ -82,7 +82,7 @@ export default {
         case 'closing':
           return 'clock-o';
         default: // 'closed'
-          return 'lock';
+          return 'ban';
       }
     }
   }
@@ -223,6 +223,23 @@ export default {
         "{submissions} untuk formulir ini sudah disimpan."
       ],
       "submissions": "Kiriman data"
+    }
+  },
+  "ja": {
+    "version": {
+      "full": "フォームの{publishedVersion}",
+      "publishedVersion": "公開バージョン"
+    },
+    "stateCaption": {
+      "open": "このフォームはダウンロードでき、フォームの提出も受け付けています。",
+      "closing": "このフォームはダウンロードできませんが、フォームの提出は受け付けています。",
+      "closed": "このフォームはダウンロードできませんし、フォームの提出も受け付けていません。"
+    },
+    "submissions": {
+      "full": [
+        "このフォームへの{submissions}は保存されました。"
+      ],
+      "submissions": "提出"
     }
   }
 }

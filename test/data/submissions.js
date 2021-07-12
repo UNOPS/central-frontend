@@ -1,13 +1,13 @@
 import faker from 'faker';
 import { DateTime } from 'luxon';
-import { comparator, hasPath, lensPath, set } from 'ramda';
+import { comparator, hasPath, lensPath, omit, set } from 'ramda';
 
 import Field from '../../src/presenters/field';
 
-import { dataStore } from './data-store';
+import { dataStore, view } from './data-store';
 import { extendedForms } from './forms';
 import { extendedUsers } from './users';
-import { fakePastDate } from '../util/date-time';
+import { fakePastDate, isBefore } from '../util/date-time';
 import { toActor } from './actors';
 
 const fakeDateTime = () => {
@@ -29,9 +29,8 @@ const odataValue = (field, instanceId) => {
       const paragraphs = faker.random.number({ min: 1, max: 3 });
       return faker.lorem.paragraphs(paragraphs);
     }
-    case 'date': {
+    case 'date':
       return fakeDateTime().toFormat('yyyy-MM-dd');
-    }
     case 'time': {
       const formatted = fakeDateTime().toFormat('HH:mm:ss');
       return faker.random.boolean() ? formatted : `${formatted}+01:00`;
@@ -40,15 +39,8 @@ const odataValue = (field, instanceId) => {
       const formatted = fakeDateTime().toISO({ includeOffset: false });
       return faker.random.boolean() ? formatted : `${formatted}+01:00`;
     }
-    case 'geopoint': {
-      // [longitude, latitude], not [latitude, longitude]
-      const coordinates = [
-        faker.random.number({ min: -180, max: 180, precision: 0.0000000001 }),
-        faker.random.number({ min: -85, max: 85, precision: 0.0000000001 })
-      ];
-      if (faker.random.boolean()) coordinates.push(faker.random.number());
-      return { type: 'Point', coordinates };
-    }
+    case 'geopoint':
+      return 'POINT (0 90)';
     case 'binary':
       return faker.system.commonFileName('jpg');
     case null:
@@ -58,8 +50,8 @@ const odataValue = (field, instanceId) => {
   }
 };
 
-// Returns random OData for a form submission. `partial` seeds the OData.
-const odata = ({ form, instanceId, partial }) => form._fields
+// Returns random OData for a submission. `partial` seeds the OData.
+const odata = (instanceId, fields, partial) => fields
   .map(field => new Field(field))
   .reduce(
     (data, field) => {
@@ -82,44 +74,70 @@ export const extendedSubmissions = dataStore({
     inPast,
     lastCreatedAt,
 
-    form = extendedForms.first(),
+    // `form` is deprecated. Use formVersion instead.
+    form = extendedForms.size !== 0
+      ? extendedForms.first()
+      // The lastSubmission property of the form will likely not match the
+      // submission.
+      : extendedForms.createPast(1, { submissions: 1 }).last(),
+    formVersion = form,
     instanceId = faker.random.uuid(),
-    status = null,
+
     submitter = extendedUsers.first(),
+    attachmentsExpected = 0,
+    attachmentsPresent = attachmentsExpected,
+    status = null,
+    reviewState = null,
+    edits = 0,
+    deviceId = null,
+
     ...partialOData
   }) => {
-    if (form === undefined) throw new Error('form not found');
     if (extendedUsers.size === 0) throw new Error('user not found');
-    const createdAt = inPast
-      ? fakePastDate([lastCreatedAt, form.createdAt, submitter.createdAt])
-      : new Date().toISOString();
+    const createdAt = !inPast
+      ? new Date().toISOString()
+      : fakePastDate([
+        lastCreatedAt,
+        formVersion.publishedAt != null
+          ? formVersion.publishedAt
+          : formVersion.createdAt,
+        submitter.createdAt
+      ]);
     return {
       instanceId,
+      deviceId,
+      submitterId: submitter.id,
       submitter: toActor(submitter),
       createdAt,
       updatedAt: null,
       // An actual submission JSON response does not have this property. We
       // include it here so that it is easy to match submission data and
       // metadata during testing.
-      _odata: odata({
-        form,
-        instanceId,
-        partial: {
-          ...partialOData,
-          __id: instanceId,
-          __system: {
-            status,
-            submissionDate: createdAt,
-            submitterId: submitter.id.toString(),
-            submitterName: submitter.displayName
-          }
+      _odata: odata(instanceId, formVersion._fields, {
+        ...partialOData,
+        __id: instanceId,
+        __system: {
+          submissionDate: createdAt,
+          submitterId: submitter.id.toString(),
+          submitterName: submitter.displayName,
+          attachmentsPresent,
+          attachmentsExpected,
+          status,
+          reviewState,
+          edits,
+          deviceId
         }
       })
     };
   },
   sort: comparator((submission1, submission2) =>
-    submission1.createdAt > submission2.createdAt)
+    isBefore(submission2.createdAt, submission1.createdAt))
 });
+
+export const standardSubmissions = view(
+  extendedSubmissions,
+  omit(['submitter'])
+);
 
 // Converts submission response objects to OData. Returns all data even for
 // encrypted submissions.

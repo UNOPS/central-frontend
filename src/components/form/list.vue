@@ -65,12 +65,12 @@ export default {
   computed: requestData(['project', 'forms']),
   methods: {
     afterCreate(form) {
-      const path = this.formPath(form.projectId, form.xmlFormId, 'draft');
-      this.$router.push(path, () => {
-        this.$alert().success(this.$t('alert.create', {
-          name: form.nameOrId()
-        }));
-      });
+      this.$router.push(this.formPath(form.projectId, form.xmlFormId, 'draft'))
+        .then(() => {
+          this.$alert().success(this.$t('alert.create', {
+            name: form.nameOrId()
+          }));
+        });
     }
   }
 };
@@ -144,6 +144,16 @@ export default {
     "emptyTable": "Tidak ada formulir untuk ditampilkan.",
     "alert": {
       "create": "Formulir {name} telah berhasil disimpan sebagai draf. Lihatlah daftar periksa di bawah, dan ketika Anda merasa sudah siap, Anda dapat menerbitkan formulir untuk digunakan."
+    }
+  },
+  "ja": {
+    "title": "フォーム",
+    "action": {
+      "create": "新規作成"
+    },
+    "emptyTable": "表示できるフォームはありません。",
+    "alert": {
+      "create": "新規フォーム\"{name}\"が下書きとして作成されました。以下のチェックリストを参考にして、準備が整ったらフォームを公開して使用できます。"
     }
   }
 }

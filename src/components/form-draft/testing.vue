@@ -23,7 +23,8 @@ except according to the terms contained in the LICENSE file.
           <template #body>
             <p>{{ $t('body[0]') }}</p>
             <p>
-              {{ $t('body[1]') }}
+              <span>{{ $t('body[1]') }}</span>
+              <sentence-separator/>
               <i18n :tag="false" path="moreInfo.helpArticle.full">
                 <template #helpArticle>
                   <doc-link to="central-forms/#working-with-form-drafts">{{ $t('moreInfo.helpArticle.helpArticle') }}</doc-link>
@@ -42,8 +43,8 @@ except according to the terms contained in the LICENSE file.
     </div>
 
     <loading :state="$store.getters.initiallyLoading(['keys'])"/>
-    <submission-list v-show="keys != null" :base-url="baseUrl"
-      :form-version="formDraft"/>
+    <submission-list v-show="keys != null" :project-id="projectId"
+      :xml-form-id="xmlFormId" draft/>
   </div>
 </template>
 
@@ -56,6 +57,7 @@ import CollectQr from '../collect-qr.vue';
 import DocLink from '../doc-link.vue';
 import EnketoFill from '../enketo/fill.vue';
 import Loading from '../loading.vue';
+import SentenceSeparator from '../sentence-separator.vue';
 import SubmissionList from '../submission/list.vue';
 
 import Option from '../../util/option';
@@ -73,6 +75,7 @@ export default {
     DocLink,
     EnketoFill,
     Loading,
+    SentenceSeparator,
     SubmissionList
   },
   props: {
@@ -90,16 +93,24 @@ export default {
     // component is created.
     ...requestData([{ key: 'formDraft', getOption: true }, 'keys']),
     qrSettings() {
+      const url = apiPaths.serverUrlForFormDraft(
+        this.formDraft.draftToken,
+        this.projectId,
+        this.xmlFormId
+      );
       return {
-        server_url: apiPaths.serverUrlForFormDraft(
-          this.formDraft.draftToken,
-          this.projectId,
-          this.xmlFormId
-        )
+        general: {
+          server_url: `${window.location.origin}${url}`,
+          form_update_mode: 'match_exactly',
+          autosend: 'wifi_and_cellular'
+        },
+        project: {
+          name: this.$t('collectProjectName', this.formDraft),
+          icon: '📝'
+        },
+        // Collect requires the settings to have an `admin` property.
+        admin: {}
       };
-    },
-    baseUrl() {
-      return apiPaths.formDraft(this.projectId, this.xmlFormId);
     }
   },
   created() {
@@ -111,7 +122,7 @@ export default {
       this.$store.dispatch('get', [{
         // We do not reconcile `keys` and formDraft.keyId.
         key: 'keys',
-        url: apiPaths.formDraftSubmissionKeys(this.projectId, this.xmlFormId)
+        url: apiPaths.submissionKeys(this.projectId, this.xmlFormId, true)
       }]).catch(noop);
     },
     reconcileSubmissionCount() {
@@ -152,7 +163,10 @@ export default {
     "body": [
       "You can use the configuration code to the right to set up a mobile device to download this Draft. You can also click the New button above to create a new Submission from your web browser.",
       "Draft Submissions go into the test table below, where you can preview and download them. When you publish this Draft Form, its test Submissions will be permanently removed."
-    ]
+    ],
+    // This text will be shown in ODK Collect when testing a Draft Form. {name}
+    // is the title of the Draft Form.
+    "collectProjectName": "[Draft] {name}"
   }
 }
 </i18n>
@@ -165,7 +179,8 @@ export default {
     "body": [
       "Pomocí konfiguračního kódu vpravo můžete nastavit mobilní zařízení ke stažení tohoto konceptu. Můžete také klepnout na tlačítko Nový výše a vytvořit nový příspěvek z webového prohlížeče.",
       "Pro koncept příspěvku přejděte do níže uvedené testovací tabulky, kde si ho můžete prohlédnout a stáhnout. Při publikování tohoto konceptu formuláře budou jeho testovací příspěvky trvale odstraněny."
-    ]
+    ],
+    "collectProjectName": "[Návrh] {name}"
   },
   "de": {
     "title": "Entwurfs-Test",
@@ -193,6 +208,13 @@ export default {
     "body": [
       "Anda bisa menggunakan kode konfigurasi di sebelah kanan untuk mengatur perangkat seluler untuk mengunduh draf ini. Anda juga bisa mengklik tombol \"Baru\" untuk membuat kiriman data baru lewat web browser Anda.",
       "Draf kiriman data akan mucnul pada tabel tes di bawah, di mana Anda juga bisa melihat pratinjau dan mengunduhnya. Ketika formulir draf diterbitkan, tes kiriman data akan dihapus secara permanen."
+    ]
+  },
+  "ja": {
+    "title": "下書きのテスト",
+    "body": [
+      "右の設定コードを利用してモバイル端末に、この下書きフォームをダウンロードする設定ができます。また上の「新規作成」ボタンをクリックすると、Webブラウザからフォームの作成と提出が可能です。",
+      "下書きにテスト提出されたフォームは、以下の表に示されます。ここではデータのプレビューやダウンロードが可能です。この下書きフォームを公開した場合、テスト提出済フォームは永久に削除されます。"
     ]
   }
 }

@@ -11,7 +11,7 @@ except according to the terms contained in the LICENSE file.
 -->
 <template>
   <div class="form-version-def-dropdown btn-group">
-    <button :id="toggleId" type="button" class="btn btn-primary dropdown-toggle"
+    <button :id="toggleId" type="button" class="btn btn-default dropdown-toggle"
       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       <span class="icon-code"></span>
       <span>{{ $t('action.def') }}</span>
@@ -22,14 +22,13 @@ except according to the terms contained in the LICENSE file.
         <a href="#" @click.prevent="viewXml">{{ $t('action.viewXml') }}</a>
       </li>
       <li>
-        <!-- '(.xml)' may be an issue for an RTL locale. -->
-        <a :href="defPath('xml')" :download="`${version.xmlFormId}.xml`">
-          {{ $t('action.downloadXForm') }} (.xml)
+        <a :href="defPath('.xml')" :download="`${version.xmlFormId}.xml`">
+          {{ $t('action.downloadXForm') }}
         </a>
       </li>
       <li v-if="version.excelContentType != null">
         <a :href="defPath(excelExtension)">
-          {{ $t('action.downloadXlsForm') }} (.{{ excelExtension }})
+          {{ $t('action.downloadXlsForm', { extension: excelExtension }) }}
         </a>
       </li>
     </ul>
@@ -55,8 +54,8 @@ export default {
     },
     excelExtension() {
       return this.version.excelContentType === 'application/vnd.ms-excel'
-        ? 'xls'
-        : 'xlsx';
+        ? '.xls'
+        : '.xlsx';
     }
   },
   methods: {
@@ -69,7 +68,7 @@ export default {
     viewXml() {
       this.$store.dispatch('get', [{
         key: 'formVersionXml',
-        url: this.defPath('xml')
+        url: this.defPath('.xml')
       }]).catch(noop);
       this.$emit('view-xml');
     }
@@ -86,10 +85,10 @@ export default {
       "viewXml": "View XML in browser",
       // This is the text of a link to download a Form definition. The word
       // "XForm" should not be translated.
-      "downloadXForm": "Download as XForm",
-      // This is the text of a link to download a Form definition. The word
-      // "XLSForm" should not be translated.
-      "downloadXlsForm": "Download as XLSForm"
+      "downloadXForm": "Download as XForm (.xml)",
+      // This is the text of a link to download a Form definition. {extension}
+      // is either .xls or .xlsx. The word "XLSForm" should not be translated.
+      "downloadXlsForm": "Download as XLSForm ({extension})"
     }
   }
 }
@@ -102,32 +101,42 @@ export default {
     "action": {
       "def": "Definice",
       "viewXml": "Zobrazit XML v prohlížeči",
-      "downloadXForm": "Stáhnout jako XForm",
-      "downloadXlsForm": "Stáhnout jako XLSForm"
+      "downloadXForm": "Stáhnout jako XForm (.xml)",
+      "downloadXlsForm": "Stáhnout jako XLSForm ({extension})"
     }
   },
   "de": {
     "action": {
       "def": "Definition",
-      "viewXml": "XML im Browser ansehen",
-      "downloadXForm": "Als XForm herunterladen",
-      "downloadXlsForm": "Als XLSForm herunterladen"
+      "viewXml": "XML im Browser ansehen"
     }
   },
   "es": {
     "action": {
       "def": "Definición",
       "viewXml": "Ver el XML en el navegador",
-      "downloadXForm": "Descargar como XForm",
-      "downloadXlsForm": "Descargar como XLSForm"
+      "downloadXForm": "Descarga como Xform (.xml)",
+      "downloadXlsForm": "Descarga como XLSForm ({extension})"
     }
   },
   "fr": {
     "action": {
       "def": "Définition",
-      "viewXml": "Aperçu XML",
-      "downloadXForm": "Télécharger le XML",
-      "downloadXlsForm": "Télécharger le XLSForm"
+      "viewXml": "Aperçu XML"
+    }
+  },
+  "id": {
+    "action": {
+      "def": "Definisi",
+      "viewXml": "Lihat XML di browser"
+    }
+  },
+  "ja": {
+    "action": {
+      "def": "定義フォーム",
+      "viewXml": "XMLをブラウザで表示する",
+      "downloadXForm": "XFormとしてダウンロード（.xml形式）",
+      "downloadXlsForm": "XLSFormとしてダウンロード（{extension}形式）"
     }
   }
 }

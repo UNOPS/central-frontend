@@ -1,5 +1,10 @@
+import Vue from 'vue';
+
+import sinon from 'sinon';
+
 import i18n from '../../src/i18n';
-import { apiPaths, configForPossibleBackendRequest, queryString, requestAlertMessage } from '../../src/util/request';
+import { apiPaths, configForPossibleBackendRequest, isProblem, logAxiosError, queryString, requestAlertMessage } from '../../src/util/request';
+
 import { i18nProps } from '../util/i18n';
 
 describe('util/request', () => {
@@ -81,9 +86,33 @@ describe('util/request', () => {
       apiPaths.form(1, 'a b').should.equal('/v1/projects/1/forms/a%20b');
     });
 
+    describe('odataSvc', () => {
+      it('returns the correct path', () => {
+        const path = apiPaths.odataSvc(1, 'a b');
+        path.should.equal('/v1/projects/1/forms/a%20b.svc');
+      });
+
+      it('returns the correct path for a form draft', () => {
+        const path = apiPaths.odataSvc(1, 'a b', true);
+        path.should.equal('/v1/projects/1/forms/a%20b/draft.svc');
+      });
+    });
+
     it('formActors', () => {
       const path = apiPaths.formActors(1, 'a b', 'app-user');
       path.should.equal('/v1/projects/1/forms/a%20b/assignments/app-user');
+    });
+
+    describe('fields', () => {
+      it('returns the correct path for a form', () => {
+        const path = apiPaths.fields(1, 'a b');
+        path.should.equal('/v1/projects/1/forms/a%20b/fields');
+      });
+
+      it('returns the correct path for a form draft', () => {
+        const path = apiPaths.fields(1, 'a b', true);
+        path.should.equal('/v1/projects/1/forms/a%20b/draft/fields');
+      });
     });
 
     it('formVersions', () => {
@@ -92,12 +121,12 @@ describe('util/request', () => {
     });
 
     it('formVersionDef', () => {
-      const path = apiPaths.formVersionDef(1, 'a b', 'c d', 'xml');
+      const path = apiPaths.formVersionDef(1, 'a b', 'c d', '.xml');
       path.should.equal('/v1/projects/1/forms/a%20b/versions/c%20d.xml');
     });
 
     it('formVersionDef: empty version', () => {
-      const path = apiPaths.formVersionDef(1, 'a b', '', 'xml');
+      const path = apiPaths.formVersionDef(1, 'a b', '', '.xml');
       path.should.equal('/v1/projects/1/forms/a%20b/versions/___.xml');
     });
 
@@ -112,7 +141,7 @@ describe('util/request', () => {
     });
 
     it('formDraftDef', () => {
-      const path = apiPaths.formDraftDef(1, 'a b', 'xml');
+      const path = apiPaths.formDraftDef(1, 'a b', '.xml');
       path.should.equal('/v1/projects/1/forms/a%20b/draft.xml');
     });
 
@@ -141,14 +170,101 @@ describe('util/request', () => {
       path.should.equal('/v1/projects/1/forms/a%20b/draft/attachments/c%20d');
     });
 
-    it('formDraftSubmissionKeys', () => {
-      const path = apiPaths.formDraftSubmissionKeys(1, 'a b');
-      path.should.equal('/v1/projects/1/forms/a%20b/draft/submissions/keys');
+    describe('submissions', () => {
+      it('returns the correct path for a form', () => {
+        const path = apiPaths.submissions(1, 'a b', false, '.csv.zip');
+        path.should.equal('/v1/projects/1/forms/a%20b/submissions.csv.zip');
+      });
+
+      it('returns the correct path for a form draft', () => {
+        const path = apiPaths.submissions(1, 'a b', true, '.csv.zip');
+        path.should.equal('/v1/projects/1/forms/a%20b/draft/submissions.csv.zip');
+      });
+
+      it('returns a query string', () => {
+        const path = apiPaths.submissions(1, 'a b', false, '.csv.zip', {
+          attachments: false
+        });
+        path.should.equal('/v1/projects/1/forms/a%20b/submissions.csv.zip?attachments=false');
+      });
     });
 
-    it('submissionKeys', () => {
-      const path = apiPaths.submissionKeys(1, 'a b');
-      path.should.equal('/v1/projects/1/forms/a%20b/submissions/keys');
+    describe('odataSubmissions', () => {
+      it('returns the correct path for a form', () => {
+        const path = apiPaths.odataSubmissions(1, 'a b');
+        path.should.equal('/v1/projects/1/forms/a%20b.svc/Submissions');
+      });
+
+      it('returns the correct path for a form draft', () => {
+        const path = apiPaths.odataSubmissions(1, 'a b', true);
+        path.should.equal('/v1/projects/1/forms/a%20b/draft.svc/Submissions');
+      });
+
+      it('returns a query string', () => {
+        const path = apiPaths.odataSubmissions(1, 'a b', false, { $count: true });
+        path.should.equal('/v1/projects/1/forms/a%20b.svc/Submissions?%24count=true');
+      });
+    });
+
+    describe('submissionKeys', () => {
+      it('returns the correct path for a form', () => {
+        const path = apiPaths.submissionKeys(1, 'a b');
+        path.should.equal('/v1/projects/1/forms/a%20b/submissions/keys');
+      });
+
+      it('returns the correct path for a form draft', () => {
+        const path = apiPaths.submissionKeys(1, 'a b', true);
+        path.should.equal('/v1/projects/1/forms/a%20b/draft/submissions/keys');
+      });
+    });
+
+    describe('submitters', () => {
+      it('returns the correct path for a form', () => {
+        const path = apiPaths.submitters(1, 'a b');
+        path.should.equal('/v1/projects/1/forms/a%20b/submissions/submitters');
+      });
+
+      it('returns the correct path for a form draft', () => {
+        const path = apiPaths.submitters(1, 'a b', true);
+        path.should.equal('/v1/projects/1/forms/a%20b/draft/submissions/submitters');
+      });
+    });
+
+    it('submission', () => {
+      const path = apiPaths.submission(1, 'a b', 'c d');
+      path.should.equal('/v1/projects/1/forms/a%20b/submissions/c%20d');
+    });
+
+    it('odataSubmission', () => {
+      const path = apiPaths.odataSubmission(1, 'a b', "'c d'");
+      path.should.equal("/v1/projects/1/forms/a%20b.svc/Submissions('''c%20d''')");
+    });
+
+    it('editSubmission', () => {
+      const path = apiPaths.editSubmission(1, 'a b', 'c d');
+      path.should.equal('/v1/projects/1/forms/a%20b/submissions/c%20d/edit');
+    });
+
+    describe('submissionAttachment', () => {
+      it('returns the correct path for a form', () => {
+        const path = apiPaths.submissionAttachment(1, 'a b', false, 'c d', 'e f');
+        path.should.equal('/v1/projects/1/forms/a%20b/submissions/c%20d/attachments/e%20f');
+      });
+
+      it('returns the correct path for a form draft', () => {
+        const path = apiPaths.submissionAttachment(1, 'a b', true, 'c d', 'e f');
+        path.should.equal('/v1/projects/1/forms/a%20b/draft/submissions/c%20d/attachments/e%20f');
+      });
+    });
+
+    it('submissionAudits', () => {
+      const path = apiPaths.submissionAudits(1, 'a b', 'c d');
+      path.should.equal('/v1/projects/1/forms/a%20b/submissions/c%20d/audits');
+    });
+
+    it('submissionComments', () => {
+      const path = apiPaths.submissionComments(1, 'a b', 'c d');
+      path.should.equal('/v1/projects/1/forms/a%20b/submissions/c%20d/comments');
     });
 
     it('publicLinks', () => {
@@ -239,6 +355,56 @@ describe('util/request', () => {
     });
   });
 
+  describe('isProblem()', () => {
+    it('returns true for a Problem', () => {
+      isProblem({ code: 404.1, message: 'Not found.' }).should.be.true();
+    });
+
+    it('returns false for null', () => {
+      isProblem(null).should.be.false();
+    });
+
+    it('returns false for a string', () => {
+      isProblem('foo').should.be.false();
+    });
+
+    it('returns false for an object without a code property', () => {
+      isProblem({ message: 'Not found.' }).should.be.false();
+    });
+
+    it('returns false for an object without a message property', () => {
+      isProblem({ code: 404.1 }).should.be.false();
+    });
+  });
+
+  describe('logAxiosError()', () => {
+    it('does not log if there was a response', () => {
+      const error = new Error();
+      error.response = {};
+      const log = sinon.fake();
+      sinon.replace(Vue.prototype.$logger, 'log', log);
+      logAxiosError(error);
+      log.called.should.be.false();
+    });
+
+    it('logs the request if there was one', () => {
+      const error = new Error();
+      error.request = {};
+      const log = sinon.fake();
+      sinon.replace(Vue.prototype.$logger, 'log', log);
+      logAxiosError(error);
+      log.calledWith(error.request).should.be.true();
+    });
+
+    it('logs the error message if there was no request', () => {
+      const error = new Error('foo');
+      const log = sinon.fake();
+      sinon.replace(Vue.prototype.$logger, 'log', log);
+      logAxiosError(error);
+      log.calledWith('foo').should.be.true();
+    });
+  });
+
   describe('requestAlertMessage()', () => {
     const errorWithProblem = (code = 500.1) => {
       const error = new Error();
@@ -264,9 +430,12 @@ describe('util/request', () => {
     it('returns a message if the response is not a Problem', () => {
       const error = new Error();
       error.request = {};
-      error.response = { x: 1 };
+      error.response = {
+        status: 500,
+        data: { x: 1 }
+      };
       const message = requestAlertMessage(error);
-      message.should.equal('Something went wrong: the server returned an invalid error.');
+      message.should.equal('Something went wrong: error code 500.');
     });
 
     it('returns the Problem message by default', () => {

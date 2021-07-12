@@ -43,6 +43,10 @@ const loaders = new Map()
     /* webpackChunkName: "component-backup-list" */
     '../components/backup/list.vue'
   )))
+  .set('Download', loader(() => import(
+    /* webpackChunkName: "component-download" */
+    '../components/download.vue'
+  )))
   .set('FieldKeyList', loader(() => import(
     /* webpackChunkName: "component-field-key-list" */
     '../components/field-key/list.vue'
@@ -118,6 +122,10 @@ const loaders = new Map()
   .set('PublicLinkList', loader(() => import(
     /* webpackChunkName: "component-public-link-list" */
     '../components/public-link/list.vue'
+  )))
+  .set('SubmissionShow', loader(() => import(
+    /* webpackChunkName: "component-submission-show" */
+    '../components/submission/show.vue'
   )))
   .set('SystemHome', loader(() => import(
     /* webpackChunkName: "component-system-home" */
